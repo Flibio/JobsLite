@@ -18,7 +18,7 @@ public class PlayerJoinListener {
 	public void onPlayerJoin(ClientConnectionEvent.Join event) {
 		playerManager.addPlayer(event.getTargetEntity().getUniqueId().toString());
 		Player player = event.getTargetEntity();
-		Thread thread = new Thread(new Runnable() {
+		Main.access.game.getScheduler().createTaskBuilder().execute(new Runnable() {
 			public void run() {
 				if(player.hasPermission("jobs.admin.updates")&&Main.optionEnabled("updateNotifications")) {
 					JsonUtils jsonUtils = new JsonUtils();
@@ -46,7 +46,6 @@ public class PlayerJoinListener {
 					}
 				}
 			}
-		});
-		thread.start();
+		}).async().submit(Main.access);
 	}
 }

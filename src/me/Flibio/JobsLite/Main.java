@@ -116,22 +116,12 @@ public class Main {
 		registerCommands();
 		
 		//Schedule async task to auto-save files
-		Thread thread = new Thread(new Runnable() {
+		game.getScheduler().createTaskBuilder().execute(new Runnable() {
 			public void run() {
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException e1) {}
-				while(true) {
-					//Save all of the files
-					fileManager.saveAllFiles();
-					try {
-						//Sleep for 5 seconds (5000 milliseconds)
-						Thread.sleep(5000);
-					} catch (InterruptedException e) {}
-				}
+				//Save all of the files
+				fileManager.saveAllFiles();
 			}
-		});
-		thread.start();
+		}).async().delay(10000).interval(5000).submit(this);
 		
 		//Plugin Metrics
 		try {
@@ -150,7 +140,7 @@ public class Main {
 	@Listener
 	public void onServerStart(GameStartedServerEvent event) {
 		if(!optionEnabled("updateNotifications")) return;
-		Thread thread = new Thread(new Runnable() {
+		game.getScheduler().createTaskBuilder().execute(new Runnable() {
 			public void run() {
 				//Check for an update
 				JsonUtils jsonUtils = new JsonUtils();
@@ -177,8 +167,7 @@ public class Main {
 					}
 				}
 			}
-		});
-		thread.start();
+		}).async().submit(this);
 	}
 	
 	@Listener
