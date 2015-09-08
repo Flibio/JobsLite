@@ -9,16 +9,18 @@ import me.Flibio.JobsLite.Utils.JobManager;
 import me.Flibio.JobsLite.Utils.TextUtils;
 
 import org.spongepowered.api.block.BlockState;
-import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.event.Subscribe;
-import org.spongepowered.api.event.entity.player.PlayerChatEvent;
-import org.spongepowered.api.event.entity.player.PlayerInteractBlockEvent;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.block.InteractBlockEvent;
+import org.spongepowered.api.event.command.MessageSinkEvent;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.Consumer;
 import org.spongepowered.api.util.command.CommandSource;
+
+import com.google.common.base.Optional;
 
 public class CreatingJob {
 	
@@ -60,13 +62,16 @@ public class CreatingJob {
 		player.sendMessage(TextUtils.nameQuestion("name", false, false));
 		currentTask = CurrentTask.JOB_NAME;
 		
-		Main.access.game.getEventManager().register(Main.access, this);
+		Main.access.game.getEventManager().registerListeners(Main.access, this);
 	}
 	
-	@Subscribe
-	public void onChat(PlayerChatEvent event) {
-		if(event.getUser().equals(player)&&currentTask!=CurrentTask.CANCELLED) {
-			if(Texts.toPlain(event.getUnformattedMessage()).toLowerCase().contains("[cancel]")) {
+	@Listener
+	public void onChat(MessageSinkEvent event) {
+		Optional<Player> playerOptional = event.getCause().first(Player.class);
+		if(!playerOptional.isPresent()) return;
+		Player eventPlayer = playerOptional.get();
+		if(eventPlayer.equals(player)&&currentTask!=CurrentTask.CANCELLED) {
+			if(Texts.toPlain(event.getOriginalMessage()).toLowerCase().contains("[cancel]")) {
 				event.setCancelled(true);
 				player.sendMessage(TextUtils.cancelled());
 				name = "";
@@ -80,9 +85,9 @@ public class CreatingJob {
 		}
 		if(currentTask.equals(CurrentTask.CANCELLED)) return;
 		if(currentTask.equals(CurrentTask.JOB_NAME)) {
-			if(event.getUser().equals(player)) {
+			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				name = Texts.toPlain(event.getUnformattedMessage()).replaceAll(" ", "").trim();
+				name = Texts.toPlain(event.getOriginalMessage()).replaceAll(" ", "").trim();
 				if(!jobManager.jobExists(name)) {
 					player.sendMessage(TextUtils.registered("Name", name));
 					player.sendMessage(TextUtils.line());
@@ -93,18 +98,18 @@ public class CreatingJob {
 				}
 			}
 		} else if(currentTask.equals(CurrentTask.JOB_DISPLAY_NAME)) {
-			if(event.getUser().equals(player)) {
+			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				displayName = Texts.toPlain(event.getUnformattedMessage()).trim();
+				displayName = Texts.toPlain(event.getOriginalMessage()).trim();
 				player.sendMessage(TextUtils.registered("Display Name", displayName));
 				player.sendMessage(TextUtils.line());
 				player.sendMessage(TextUtils.nameQuestion("max level", false, true));
 				currentTask = CurrentTask.MAX_LEVEL;
 			}
 		} else if(currentTask.equals(CurrentTask.MAX_LEVEL)) {
-			if(event.getUser().equals(player)) {
+			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getUnformattedMessage()).trim();
+				String input = Texts.toPlain(event.getOriginalMessage()).trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -124,9 +129,9 @@ public class CreatingJob {
 				
 			}
 		} else if(currentTask.equals(CurrentTask.BREAK_CURRENCY)) {
-			if(event.getUser().equals(player)) {
+			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getUnformattedMessage()).trim();
+				String input = Texts.toPlain(event.getOriginalMessage()).trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -145,9 +150,9 @@ public class CreatingJob {
 				currentTask = CurrentTask.BREAK_EXP;
 			}
 		} else if(currentTask.equals(CurrentTask.PLACE_CURRENCY)) {
-			if(event.getUser().equals(player)) {
+			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getUnformattedMessage()).trim();
+				String input = Texts.toPlain(event.getOriginalMessage()).trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -166,9 +171,9 @@ public class CreatingJob {
 				currentTask = CurrentTask.PLACE_EXP;
 			}
 		} else if(currentTask.equals(CurrentTask.BREAK_EXP)) {
-			if(event.getUser().equals(player)) {
+			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getUnformattedMessage()).trim();
+				String input = Texts.toPlain(event.getOriginalMessage()).trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -195,9 +200,9 @@ public class CreatingJob {
 				againBreaks();
 			}
 		} else if(currentTask.equals(CurrentTask.PLACE_EXP)) {
-			if(event.getUser().equals(player)) {
+			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getUnformattedMessage()).trim();
+				String input = Texts.toPlain(event.getOriginalMessage()).trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -226,17 +231,20 @@ public class CreatingJob {
 		}
 	}
 	
-	@Subscribe
-	public void onInteractBlock(PlayerInteractBlockEvent event) {
+	@Listener
+	public void onInteractBlock(InteractBlockEvent event) {
 		if(currentTask.equals(CurrentTask.CANCELLED)) return;
-		if(event.getUser().equals(player)&&currentTask.equals(CurrentTask.BREAK_CLICK)&&!event.getUser().getItemInHand().isPresent()) {
-			currentBlock = event.getLocation().getBlockSnapshot().getState();
+		Optional<Player> playerOptional = event.getCause().first(Player.class);
+		if(!playerOptional.isPresent()) return;
+		Player eventPlayer = playerOptional.get();
+		if(eventPlayer.equals(player)&&currentTask.equals(CurrentTask.BREAK_CLICK)&&!eventPlayer.getItemInHand().isPresent()) {
+			currentBlock = event.getTargetBlock().getState();
 			//TODO ask if they want to ignore data
 			player.sendMessage(TextUtils.howMuch("currency"));
 			currentTask = CurrentTask.BREAK_CURRENCY;
 		}
-		if(event.getUser().equals(player)&&currentTask.equals(CurrentTask.PLACE_CLICK)&&!event.getUser().getItemInHand().isPresent()) {
-			currentBlock = event.getLocation().getBlockSnapshot().getState();
+		if(eventPlayer.equals(player)&&currentTask.equals(CurrentTask.PLACE_CLICK)&&!eventPlayer.getItemInHand().isPresent()) {
+			currentBlock = event.getTargetBlock().getState();
 			//TODO ask if they want to ignore data
 			player.sendMessage(TextUtils.howMuch("currency"));
 			currentTask = CurrentTask.PLACE_CURRENCY;
