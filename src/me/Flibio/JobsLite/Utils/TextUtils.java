@@ -52,46 +52,6 @@ public class TextUtils {
 		return text;
 	}
 	
-	public static Text cancelText() {
-		Text cancel = Texts.builder().build();
-		cancel = cancel.builder().append(Texts.builder("If at any point you would like to cancel job creation, please type ").color(TextColors.YELLOW).build()).build();
-		cancel = cancel.builder().append(Texts.builder("[").color(TextColors.DARK_GRAY).build()).build();
-		cancel = cancel.builder().append(Texts.builder("CANCEL").color(TextColors.RED).build()).build();
-		cancel = cancel.builder().append(Texts.builder("]").color(TextColors.DARK_GRAY).build()).build();
-		
-		return cancel;
-	}
-	
-	public static Text cancelled() {
-		Text cancel = Texts.builder("Cancelled ").color(TextColors.RED).build();
-		cancel = cancel.builder().append(Texts.builder("job creation!").color(TextColors.YELLOW).build()).build();
-		
-		return cancel;
-	}
-	
-	public static Text nameQuestion(String name, boolean spaces, boolean nothing) {
-		Text question = Texts.builder().build();
-		question = question.builder().append(Texts.builder("What would you like the ").color(TextColors.YELLOW).build()).build();
-		question = question.builder().append(Texts.builder(name).color(TextColors.GREEN).build()).build();
-		question = question.builder().append(Texts.builder(" of the job to be?").color(TextColors.YELLOW).build()).build();
-		if(!nothing) {
-			if(spaces) {
-				question = question.builder().append(Texts.builder(" (Spaces Allowed)").color(TextColors.GREEN).build()).build();
-			} else {
-				question = question.builder().append(Texts.builder(" (No Spaces)").color(TextColors.GREEN).build()).build();
-			}
-		}
-		return question;
-	}
-	
-	public static Text registered(String what, String value) {
-		Text register = Texts.builder("Registered ").color(TextColors.YELLOW).build();
-		register = register.builder().append(Texts.builder(what+": ").color(TextColors.YELLOW).build()).build();
-		register = register.builder().append(Texts.builder(value).color(TextColors.GREEN).build()).build();
-		
-		return register;
-	}
-	
 	public static Text chatMessage(String name, String jobName, TextColor jobColor, String message) {
 		Text text = Texts.builder("[").color(TextColors.DARK_GRAY).build();
 		text = text.builder().append(Texts.builder(jobName).color(jobColor).build()).build();
@@ -139,57 +99,6 @@ public class TextUtils {
 		text = text.builder().append(Texts.builder("max-level").color(TextColors.GREEN).build()).build();
 		text = text.builder().append(Texts.builder(" "+job+"!").color(TextColors.GOLD).build()).build();
 		
-		return text;
-	}
-	
-	public static Text reward(String doing, String what, String reward, String suffix) {
-		Text text = Texts.builder("Reward for ").color(TextColors.YELLOW).build();
-		text = text.builder().append(Texts.builder(doing).color(TextColors.GOLD).build()).build();
-		text = text.builder().append(Texts.builder(" "+what+": ").color(TextColors.GREEN).build()).build();
-		text = text.builder().append(Texts.builder(reward).color(TextColors.DARK_GREEN).build()).build();
-		if(!suffix.isEmpty()) {
-			text = text.builder().append(Texts.builder(" "+suffix).color(TextColors.DARK_GREEN).build()).build();
-		}
-		
-		return text;
-	}
-	
-	public static Text howMuch(String what) {
-		Text text = Texts.builder("How much ").color(TextColors.YELLOW).build();
-		text = text.builder().append(Texts.builder(what).color(TextColors.GREEN).build()).build();
-		text = text.builder().append(Texts.builder(" will this give?").color(TextColors.YELLOW).build()).build();
-		
-		return text;
-	}
-	
-	public static Text another(String what) {
-		Text text = Texts.builder("Do you want to add another ").color(TextColors.YELLOW).build();
-		text = text.builder().append(Texts.builder(what+"?").color(TextColors.GREEN).build()).build();
-		
-		return text;
-	}
-	
-	public static Text addQuestion(String earn1, String earn2, String fromWhat) {
-		Text text = Texts.builder("Do you want the player to earn ").color(TextColors.YELLOW).build();
-		text = text.builder().append(Texts.builder(earn1).color(TextColors.GREEN).build()).build();
-		text = text.builder().append(Texts.builder(" and ").color(TextColors.YELLOW).build()).build();
-		text = text.builder().append(Texts.builder(earn2).color(TextColors.GREEN).build()).build();
-		text = text.builder().append(Texts.builder(" from ").color(TextColors.YELLOW).build()).build();
-		text = text.builder().append(Texts.builder(fromWhat+"?").color(TextColors.GREEN).build()).build();
-		
-		return text;
-	}
-	
-	public static Text clickInstruction(String action) {
-		Text text = Texts.builder("Please right-click on the ").color(TextColors.YELLOW).build();
-		text = text.builder().append(Texts.builder("block").color(TextColors.GREEN).build()).build();
-		text = text.builder().append(Texts.builder(" you want the player to earn ").color(TextColors.YELLOW).build()).build();
-		text = text.builder().append(Texts.builder("currency").color(TextColors.GREEN).build()).build();
-		text = text.builder().append(Texts.builder(" and ").color(TextColors.YELLOW).build()).build();
-		text = text.builder().append(Texts.builder("experience").color(TextColors.GREEN).build()).build();
-		text = text.builder().append(Texts.builder(" from when they ").color(TextColors.YELLOW).build()).build();
-		text = text.builder().append(Texts.builder(action).color(TextColors.GREEN).build()).build();
-		text = text.builder().append(Texts.builder(" it.").color(TextColors.YELLOW).build()).build();
 		return text;
 	}
 	
