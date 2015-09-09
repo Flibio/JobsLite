@@ -1,7 +1,0 @@
-language: java
-jdk:
-  - oraclejdk8
-install:
-  - wget https://github.com/Erigitic/TotalEconomy/releases/download/v1.0.9/TotalEconomy.jar
-  - tar -xzvf totaleconomy1.0.9.jar
-  - cd totaleconomy1.0.9 && ./configure --prefix=/usr && make && sudo make install
