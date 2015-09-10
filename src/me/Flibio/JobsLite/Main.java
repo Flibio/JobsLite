@@ -6,6 +6,7 @@ import java.util.HashMap;
 import me.Flibio.EconomyLite.API.EconomyLiteAPI;
 import me.Flibio.JobsLite.Commands.CreateCommand;
 import me.Flibio.JobsLite.Commands.JoinCommand;
+import me.Flibio.JobsLite.Commands.SetCommand;
 import me.Flibio.JobsLite.Listeners.PlayerBlockBreakListener;
 import me.Flibio.JobsLite.Listeners.PlayerChatListener;
 import me.Flibio.JobsLite.Listeners.PlayerJoinListener;
@@ -29,6 +30,7 @@ import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.util.command.args.GenericArguments;
 import org.spongepowered.api.util.command.spec.CommandSpec;
 
 import com.erigitic.service.TEService;
@@ -219,10 +221,17 @@ public class Main {
 		    .permission("jobs.join")
 		    .executor(new JoinCommand())
 		    .build();
+		CommandSpec setCommand = CommandSpec.builder()
+			    .description(Texts.of("Set a player's job"))
+			    .permission("jobs.set")
+			     .arguments(GenericArguments.string(Texts.of("target")))
+			    .executor(new SetCommand())
+			    .build();
 		CommandSpec jobsCommand = CommandSpec.builder()
 		    .description(Texts.of("Jobs commands"))
 		    .child(createCommand, "create")
 		    .child(joinCommand, "join")
+		    .child(setCommand, "set")
 		    .build();
 		game.getCommandDispatcher().register(this, jobsCommand, "jobs");
 	}
