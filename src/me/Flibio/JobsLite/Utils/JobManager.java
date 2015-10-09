@@ -1,8 +1,5 @@
 package me.Flibio.JobsLite.Utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import me.Flibio.JobsLite.Main;
 import me.Flibio.JobsLite.Utils.FileManager.FileType;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -11,7 +8,9 @@ import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
 
-import com.google.common.base.Optional;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Optional;
 
 public class JobManager {
 	

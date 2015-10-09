@@ -1,8 +1,5 @@
 package me.Flibio.JobsLite.Utils;
 
-import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
-
 import me.Flibio.JobsLite.Main;
 import me.Flibio.JobsLite.Utils.FileManager.FileType;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -11,7 +8,9 @@ import org.slf4j.Logger;
 import org.spongepowered.api.GameProfile;
 import org.spongepowered.api.service.profile.GameProfileResolver;
 
-import com.google.common.base.Optional;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 public class PlayerManager {
 	

@@ -14,7 +14,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.PlaceBlockEvent;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 public class PlayerPlaceBlockListener {
 	

@@ -1,9 +1,5 @@
 package me.Flibio.JobsLite.Objects;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-
 import me.Flibio.JobsLite.Main;
 import me.Flibio.JobsLite.Utils.JobCreationMessages;
 import me.Flibio.JobsLite.Utils.JobManager;
@@ -18,10 +14,13 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.util.Consumer;
 import org.spongepowered.api.util.command.CommandSource;
 
-import com.google.common.base.Optional;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 public class CreatingJob {
 	

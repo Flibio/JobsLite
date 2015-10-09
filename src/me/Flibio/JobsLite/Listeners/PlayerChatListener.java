@@ -10,7 +10,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.command.MessageSinkEvent;
 import org.spongepowered.api.text.Texts;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 public class PlayerChatListener {
 	

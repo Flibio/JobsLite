@@ -1,8 +1,5 @@
 package me.Flibio.JobsLite;
 
-import java.io.IOException;
-import java.util.HashMap;
-
 import me.Flibio.EconomyLite.API.EconomyLiteAPI;
 import me.Flibio.JobsLite.Commands.CreateCommand;
 import me.Flibio.JobsLite.Commands.JoinCommand;
@@ -34,10 +31,13 @@ import org.spongepowered.api.util.command.args.GenericArguments;
 import org.spongepowered.api.util.command.spec.CommandSpec;
 
 import com.erigitic.service.TEService;
-import com.google.common.base.Optional;
 import com.google.inject.Inject;
 
-@Plugin(id = "JobsLite", name = "JobsLite", version = "1.0.1", dependencies = "after:EconomyLite;after:TotalEconomy")
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Optional;
+
+@Plugin(id = "JobsLite", name = "JobsLite", version = "1.1.0", dependencies = "after:EconomyLite;after:TotalEconomy")
 public class Main {
 	
 	public static Main access;

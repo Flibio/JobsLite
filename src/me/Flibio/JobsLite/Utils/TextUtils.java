@@ -1,17 +1,17 @@
 package me.Flibio.JobsLite.Utils;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.NumberFormat;
-import java.util.Locale;
-
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.util.Consumer;
 import org.spongepowered.api.util.command.CommandSource;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.NumberFormat;
+import java.util.Locale;
+import java.util.function.Consumer;
 
 
 public class TextUtils {
