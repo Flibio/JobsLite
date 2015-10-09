@@ -12,14 +12,14 @@ import org.spongepowered.api.block.BlockTransaction;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.block.BreakBlockEvent;
+import org.spongepowered.api.event.block.ChangeBlockEvent;
 
 import java.util.Optional;
 
 public class PlayerBlockBreakListener {
 	
 	@Listener
-	public void onBlockBreak(BreakBlockEvent event) {
+	public void onBlockBreak(ChangeBlockEvent.Break event) {
 		Optional<Player> playerOptional = event.getCause().first(Player.class);
 		if(!playerOptional.isPresent()) return;
 		Player player = playerOptional.get();
