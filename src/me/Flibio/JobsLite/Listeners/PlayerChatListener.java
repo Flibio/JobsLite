@@ -16,9 +16,9 @@ public class PlayerChatListener {
 	
 	private JobManager jobManager = Main.access.jobManager;
 	private PlayerManager playerManager = Main.access.playerManager;
-	//Waiting on Sponge API PR #835
+	
 	@Listener
-	public void onPlayerChat(MessageSinkEvent event) {
+	public void onPlayerChat(MessageSinkEvent.Chat event) {
 		Optional<Player> playerOptional = event.getCause().first(Player.class);
 		if(!playerOptional.isPresent()) return;
 		Player player = playerOptional.get();
@@ -31,9 +31,9 @@ public class PlayerChatListener {
 					if(!displayName.isEmpty()) {
 						if(Main.optionEnabled("displayLevel")) {
 							event.setMessage(TextUtils.chatMessage(player.getName(), displayName, playerManager.getCurrentLevel(uuid, currentJob), 
-									jobManager.getColor(currentJob), Texts.toPlain(event.getOriginalMessage())));
+									jobManager.getColor(currentJob), Texts.toPlain(event.getRawMessage())));
 						} else {
-							event.setMessage(TextUtils.chatMessage(player.getName(), displayName, jobManager.getColor(currentJob), Texts.toPlain(event.getOriginalMessage())));
+							event.setMessage(TextUtils.chatMessage(player.getName(), displayName, jobManager.getColor(currentJob), Texts.toPlain(event.getRawMessage())));
 						}
 					}
 				}
