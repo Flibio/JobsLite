@@ -1,11 +1,9 @@
 package me.Flibio.JobsLite;
 
-import java.io.IOException;
-import java.util.HashMap;
-
 import me.Flibio.EconomyLite.API.EconomyLiteAPI;
 import me.Flibio.JobsLite.Commands.CreateCommand;
 import me.Flibio.JobsLite.Commands.JoinCommand;
+import me.Flibio.JobsLite.Commands.SetCommand;
 import me.Flibio.JobsLite.Listeners.PlayerBlockBreakListener;
 import me.Flibio.JobsLite.Listeners.PlayerChatListener;
 import me.Flibio.JobsLite.Listeners.PlayerJoinListener;
@@ -21,21 +19,25 @@ import me.Flibio.JobsLite.Utils.PlayerManager;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
-import org.spongepowered.api.event.Subscribe;
-import org.spongepowered.api.event.entity.player.PlayerQuitEvent;
-import org.spongepowered.api.event.state.InitializationEvent;
-import org.spongepowered.api.event.state.PostInitializationEvent;
-import org.spongepowered.api.event.state.ServerStartedEvent;
-import org.spongepowered.api.event.state.ServerStoppingEvent;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GameInitializationEvent;
+import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
+import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.util.command.args.GenericArguments;
 import org.spongepowered.api.util.command.spec.CommandSpec;
 
 import com.erigitic.service.TEService;
-import com.google.common.base.Optional;
 import com.google.inject.Inject;
 
-@Plugin(id = "JobsLite", name = "JobsLite", version = "1.0.0", dependencies = "after:EconomyLite;after:TotalEconomy")
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Optional;
+
+@Plugin(id = "JobsLite", name = "JobsLite", version = "1.1.0", dependencies = "after:EconomyLite;after:TotalEconomy")
 public class Main {
 	
 	public static Main access;
@@ -55,8 +57,8 @@ public class Main {
 	
 	private static HashMap<String, String> configOptions = new HashMap<String, String>();
 	
-	@Subscribe
-	public void onServerInitialize(InitializationEvent event) {
+	@Listener
+	public void onServerInitialize(GameInitializationEvent event) {
 		logger.info("JobsLite by Flibio initializing!");
 		//Set the access
 		access = this;
@@ -73,8 +75,8 @@ public class Main {
 		loadConfigurationOptions();
 	}
 	
-	@Subscribe
-	public void onPostInitialization(PostInitializationEvent event) {
+	@Listener
+	public void onPostInitialization(GamePostInitializationEvent event) {
 		if(game.getPluginManager().getPlugin("EconomyLite").isPresent()&&game.getPluginManager().getPlugin("TotalEconomy").isPresent()) {
 			logger.error("You have two economy plugins installed!... JobsLite will not function!");
 			return;
@@ -116,22 +118,12 @@ public class Main {
 		registerCommands();
 		
 		//Schedule async task to auto-save files
-		Thread thread = new Thread(new Runnable() {
+		game.getScheduler().createTaskBuilder().execute(new Runnable() {
 			public void run() {
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException e1) {}
-				while(true) {
-					//Save all of the files
-					fileManager.saveAllFiles();
-					try {
-						//Sleep for 5 seconds (5000 milliseconds)
-						Thread.sleep(5000);
-					} catch (InterruptedException e) {}
-				}
+				//Save all of the files
+				fileManager.saveAllFiles();
 			}
-		});
-		thread.start();
+		}).async().delay(10000).interval(5000).submit(this);
 		
 		//Plugin Metrics
 		try {
@@ -147,10 +139,10 @@ public class Main {
 		}
 	}
 	
-	@Subscribe
-	public void onServerStart(ServerStartedEvent event) {
+	@Listener
+	public void onServerStart(GameStartedServerEvent event) {
 		if(!optionEnabled("updateNotifications")) return;
-		Thread thread = new Thread(new Runnable() {
+		game.getScheduler().createTaskBuilder().execute(new Runnable() {
 			public void run() {
 				//Check for an update
 				JsonUtils jsonUtils = new JsonUtils();
@@ -177,25 +169,24 @@ public class Main {
 					}
 				}
 			}
-		});
-		thread.start();
+		}).async().submit(this);
 	}
 	
-	@Subscribe
-	public void serverStop(ServerStoppingEvent event) {
+	@Listener
+	public void serverStop(GameStoppingServerEvent event) {
 		fileManager.saveAllFiles();
 	}
 	
-	@Subscribe
-	public void onPlayerDisconnect(PlayerQuitEvent event) {
+	@Listener
+	public void onPlayerDisconnect(ClientConnectionEvent.Disconnect event) {
 		fileManager.saveAllFiles();
 	}
 	
 	private void registerEvents() {
-		game.getEventManager().register(this, new PlayerChatListener());
-		game.getEventManager().register(this, new PlayerJoinListener());
-		game.getEventManager().register(this, new PlayerBlockBreakListener());
-		game.getEventManager().register(this, new PlayerPlaceBlockListener());
+		game.getEventManager().registerListeners(this, new PlayerChatListener());
+		game.getEventManager().registerListeners(this, new PlayerJoinListener());
+		game.getEventManager().registerListeners(this, new PlayerBlockBreakListener());
+		game.getEventManager().registerListeners(this, new PlayerPlaceBlockListener());
 	}
 	
 	private void initializeFiles() {
@@ -230,10 +221,17 @@ public class Main {
 		    .permission("jobs.join")
 		    .executor(new JoinCommand())
 		    .build();
+		CommandSpec setCommand = CommandSpec.builder()
+			    .description(Texts.of("Set a player's job"))
+			    .permission("jobs.set")
+			     .arguments(GenericArguments.string(Texts.of("target")))
+			    .executor(new SetCommand())
+			    .build();
 		CommandSpec jobsCommand = CommandSpec.builder()
 		    .description(Texts.of("Jobs commands"))
 		    .child(createCommand, "create")
 		    .child(joinCommand, "join")
+		    .child(setCommand, "set")
 		    .build();
 		game.getCommandDispatcher().register(this, jobsCommand, "jobs");
 	}

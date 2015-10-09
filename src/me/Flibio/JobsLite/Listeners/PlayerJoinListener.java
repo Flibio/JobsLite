@@ -6,19 +6,19 @@ import me.Flibio.JobsLite.Utils.JsonUtils;
 import me.Flibio.JobsLite.Utils.PlayerManager;
 import me.Flibio.JobsLite.Utils.TextUtils;
 
-import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.event.Subscribe;
-import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.network.ClientConnectionEvent;
 
 public class PlayerJoinListener {
 	
 	private PlayerManager playerManager = Main.access.playerManager;
 	
-	@Subscribe
-	public void onPlayerJoin(PlayerJoinEvent event) {
-		playerManager.addPlayer(event.getUser().getUniqueId().toString());
-		Player player = event.getUser();
-		Thread thread = new Thread(new Runnable() {
+	@Listener
+	public void onPlayerJoin(ClientConnectionEvent.Join event) {
+		playerManager.addPlayer(event.getTargetEntity().getUniqueId().toString());
+		Player player = event.getTargetEntity();
+		Main.access.game.getScheduler().createTaskBuilder().execute(new Runnable() {
 			public void run() {
 				if(player.hasPermission("jobs.admin.updates")&&Main.optionEnabled("updateNotifications")) {
 					JsonUtils jsonUtils = new JsonUtils();
@@ -46,7 +46,6 @@ public class PlayerJoinListener {
 					}
 				}
 			}
-		});
-		thread.start();
+		}).async().submit(Main.access);
 	}
 }
