@@ -42,7 +42,7 @@ public class SetCommand implements CommandExecutor{
 					//Check if the target player exists
 					if(playerManager.playerExists(targetUuid)) {
 						//Send a list of jobs to the player
-						player.sendMessage(TextUtils.instruction("click on the job you would like to join"));
+						player.sendMessage(TextUtils.instruction("click on the job you would like "+targetName+" to be"));
 						for(String job : jobManager.getJobs()) {
 							if(jobManager.jobExists(job)) {
 								String displayName = jobManager.getDisplayName(job);

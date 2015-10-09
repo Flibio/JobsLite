@@ -66,12 +66,12 @@ public class CreatingJob {
 	}
 	
 	@Listener
-	public void onChat(MessageSinkEvent event) {
+	public void onChat(MessageSinkEvent.Chat event) {
 		Optional<Player> playerOptional = event.getCause().first(Player.class);
 		if(!playerOptional.isPresent()) return;
 		Player eventPlayer = playerOptional.get();
 		if(eventPlayer.equals(player)&&currentTask!=CurrentTask.CANCELLED) {
-			if(Texts.toPlain(event.getOriginalMessage()).toLowerCase().contains("[cancel]")) {
+			if(Texts.toPlain(event.getRawMessage()).toLowerCase().contains("[cancel]")) {
 				event.setCancelled(true);
 				player.sendMessage(JobCreationMessages.genericSuccess("Successfully cancelled job creation!"));
 				name = "";
@@ -87,7 +87,7 @@ public class CreatingJob {
 		if(currentTask.equals(CurrentTask.JOB_NAME)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				name = Texts.toPlain(event.getOriginalMessage()).replaceAll(" ", "").trim();
+				name = Texts.toPlain(event.getRawMessage()).replaceAll(" ", "").trim();
 				if(!jobManager.jobExists(name)) {
 					player.sendMessage(JobCreationMessages.genericSuccess("Successfully registered name: "+name+"!"));
 					player.sendMessage(TextUtils.line());
@@ -100,7 +100,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.JOB_DISPLAY_NAME)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				displayName = Texts.toPlain(event.getOriginalMessage()).trim();
+				displayName = Texts.toPlain(event.getRawMessage()).trim();
 				player.sendMessage(JobCreationMessages.genericSuccess("Successfully registered display name: "+displayName+"!"));
 				player.sendMessage(TextUtils.line());
 				player.sendMessage(JobCreationMessages.genericQuestion("What would you like the max-level of the job to be", ""));
@@ -109,7 +109,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.MAX_LEVEL)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getOriginalMessage()).trim();
+				String input = Texts.toPlain(event.getRawMessage()).trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -131,7 +131,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.BREAK_CURRENCY)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getOriginalMessage()).trim();
+				String input = Texts.toPlain(event.getRawMessage()).trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -152,7 +152,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.PLACE_CURRENCY)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getOriginalMessage()).trim();
+				String input = Texts.toPlain(event.getRawMessage()).trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -173,7 +173,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.BREAK_EXP)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getOriginalMessage()).trim();
+				String input = Texts.toPlain(event.getRawMessage()).trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -202,7 +202,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.PLACE_EXP)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getOriginalMessage()).trim();
+				String input = Texts.toPlain(event.getRawMessage()).trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -305,7 +305,7 @@ public class CreatingJob {
 							}
 					}, currentColor, currentColor.getName())).build();
 		}
-		player.sendMessage(JobCreationMessages.genericInstruction("Please click on the color you wish this job to be:"));
+		player.sendMessage(JobCreationMessages.genericInstruction("click on the color you wish this job to be:"));
 		player.sendMessage(msg1);
 		player.sendMessage(msg2);
 		player.sendMessage(msg3);
@@ -320,7 +320,7 @@ public class CreatingJob {
 			@Override
 			public void accept(CommandSource source) {
 				if(!currentTask.equals(CurrentTask.OPTION_CLICK)) return;
-				source.sendMessage(JobCreationMessages.genericInstruction("Please click on the block you want the player to earn from:"));
+				source.sendMessage(JobCreationMessages.genericInstruction("click on the block you want the player to earn from:"));
 				currentTask = CurrentTask.BREAK_CLICK;
 			}
 			
@@ -344,7 +344,7 @@ public class CreatingJob {
 			@Override
 			public void accept(CommandSource source) {
 				if(!currentTask.equals(CurrentTask.OPTION_CLICK)) return;
-				source.sendMessage(JobCreationMessages.genericInstruction("Please click on the block you want the player to earn from:"));
+				source.sendMessage(JobCreationMessages.genericInstruction("click on the block you want the player to earn from:"));
 				currentTask = CurrentTask.BREAK_CLICK;
 			}
 			
@@ -368,7 +368,7 @@ public class CreatingJob {
 			@Override
 			public void accept(CommandSource source) {
 				if(!currentTask.equals(CurrentTask.OPTION_CLICK)) return;
-				source.sendMessage(JobCreationMessages.genericInstruction("Please click on the block you want the player to earn from:"));
+				source.sendMessage(JobCreationMessages.genericInstruction("click on the block you want the player to earn from:"));
 				currentTask = CurrentTask.PLACE_CLICK;
 			}
 			
@@ -392,7 +392,7 @@ public class CreatingJob {
 			@Override
 			public void accept(CommandSource source) {
 				if(!currentTask.equals(CurrentTask.OPTION_CLICK)) return;
-				source.sendMessage(JobCreationMessages.genericInstruction("Please click on the block you want the player to earn from:"));
+				source.sendMessage(JobCreationMessages.genericInstruction("click on the block you want the player to earn from:"));
 				currentTask = CurrentTask.PLACE_CLICK;
 			}
 			
