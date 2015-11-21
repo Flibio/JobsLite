@@ -7,8 +7,9 @@ import me.Flibio.JobsLite.Utils.NumberUtils;
 import me.Flibio.JobsLite.Utils.PlayerManager;
 import me.Flibio.JobsLite.Utils.TextUtils;
 
+import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
-import org.spongepowered.api.block.BlockTransaction;
+import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
@@ -35,7 +36,7 @@ public class PlayerPlaceBlockListener {
 					String displayName = jobManager.getDisplayName(job);
 					if(displayName.isEmpty()) return;
 					for(String block : jobManager.getPlaceBlocks(job)) {
-						for(BlockTransaction transaction : event.getTransactions()) {
+						for(Transaction<BlockSnapshot> transaction : event.getTransactions()) {
 							if(transaction.isValid()) {
 								BlockState blockTransactionState = transaction.getOriginal().getState();
 								if(block.equalsIgnoreCase(blockTransactionState.toString())||block.equalsIgnoreCase(blockTransactionState.getType().getName())) {

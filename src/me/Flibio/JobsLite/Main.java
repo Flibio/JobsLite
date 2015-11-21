@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
 
-@Plugin(id = "JobsLite", name = "JobsLite", version = "1.1.0", dependencies = "after:EconomyLite;after:TotalEconomy")
+@Plugin(id = "JobsLite", name = "JobsLite", version = "1.1.1", dependencies = "after:EconomyLite;after:TotalEconomy")
 public class Main {
 	
 	public static Main access;
@@ -123,7 +123,7 @@ public class Main {
 				//Save all of the files
 				fileManager.saveAllFiles();
 			}
-		}).async().delay(10000).interval(5000).submit(this);
+		}).async().delayTicks(10000).intervalTicks(5000).submit(this);
 		
 		//Plugin Metrics
 		try {
