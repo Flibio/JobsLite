@@ -6,6 +6,7 @@ import me.Flibio.JobsLite.Utils.JobManager;
 import me.Flibio.JobsLite.Utils.TextUtils;
 
 import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
@@ -14,7 +15,6 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.util.command.CommandSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -5,11 +5,10 @@ import me.Flibio.JobsLite.Utils.FileManager.FileType;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import org.slf4j.Logger;
-import org.spongepowered.api.GameProfile;
-import org.spongepowered.api.service.profile.GameProfileResolver;
+import org.spongepowered.api.profile.GameProfile;
+import org.spongepowered.api.profile.GameProfileManager;
 
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 public class PlayerManager {
@@ -32,20 +31,15 @@ public class PlayerManager {
 	 * 	String of the UUID found(blank string if an error occured)
 	 */
 	public String getUUID(String name) {
-		Optional<GameProfileResolver> resolverOptional = Main.access.game.getServiceManager().provide(GameProfileResolver.class);
-		if(resolverOptional.isPresent()) {
-			GameProfileResolver resolver = resolverOptional.get();
-			GameProfile profile;
-			try {
-				profile = resolver.get(name).get();
-			} catch (InterruptedException | ExecutionException e) {
-				logger.error("Error getting player's UUID");
-				return "";
-			}
-			return profile.getUniqueId().toString();
-		} else {
+		GameProfileManager manager = Main.access.game.getServer().getGameProfileManager();
+		GameProfile profile;
+		try {
+			profile = manager.get(name).get();
+		} catch (InterruptedException | ExecutionException e) {
+			logger.error("Error getting player's UUID");
 			return "";
 		}
+		return profile.getUniqueId().toString();
 	}
 	
 	/**

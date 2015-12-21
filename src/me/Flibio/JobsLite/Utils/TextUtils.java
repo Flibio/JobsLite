@@ -1,11 +1,11 @@
 package me.Flibio.JobsLite.Utils;
 
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.util.command.CommandSource;
 
 import java.net.MalformedURLException;
 import java.net.URL;

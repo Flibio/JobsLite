@@ -19,6 +19,8 @@ import me.Flibio.JobsLite.Utils.PlayerManager;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
+import org.spongepowered.api.command.args.GenericArguments;
+import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
@@ -27,8 +29,6 @@ import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Texts;
-import org.spongepowered.api.util.command.args.GenericArguments;
-import org.spongepowered.api.util.command.spec.CommandSpec;
 
 import com.erigitic.service.TEService;
 import com.google.inject.Inject;
@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
 
-@Plugin(id = "JobsLite", name = "JobsLite", version = "1.1.1", dependencies = "after:EconomyLite;after:TotalEconomy")
+@Plugin(id = "JobsLite", name = "JobsLite", version = "1.1.2", dependencies = "after:EconomyLite;after:TotalEconomy")
 public class Main {
 	
 	public static Main access;
@@ -233,7 +233,7 @@ public class Main {
 		    .child(joinCommand, "join")
 		    .child(setCommand, "set")
 		    .build();
-		game.getCommandDispatcher().register(this, jobsCommand, "jobs");
+		game.getCommandManager().register(this, jobsCommand, "jobs");
 	}
 	
 	public static boolean optionEnabled(String optionName) {
