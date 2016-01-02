@@ -1,9 +1,5 @@
 package me.Flibio.JobsLite.Utils;
 
-import java.io.File;
-import java.io.IOException;
-
-import me.Flibio.JobsLite.Main;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -11,6 +7,9 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 
 import com.typesafe.config.ConfigException;
+
+import java.io.File;
+import java.io.IOException;
 
 
 public class FileManager {
@@ -27,8 +26,8 @@ public class FileManager {
 	private ConfigurationNode jobsRoot;
 	private ConfigurationNode playerRoot;
 	
-	public FileManager() {
-		this.logger = Main.access.logger;
+	public FileManager(Logger logger) {
+		this.logger = logger;
 	}
 	
 	public void testDefault(String path, Object value) {

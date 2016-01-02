@@ -1,6 +1,6 @@
 package me.Flibio.JobsLite.Listeners;
 
-import me.Flibio.JobsLite.Main;
+import me.Flibio.JobsLite.JobsLite;
 import me.Flibio.JobsLite.Utils.JobManager;
 import me.Flibio.JobsLite.Utils.JobManager.ActionType;
 import me.Flibio.JobsLite.Utils.NumberUtils;
@@ -14,10 +14,16 @@ import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
 
+import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 public class PlayerPlaceBlockListener {
+	
+	private UniqueAccount account;
 	
 	@Listener
 	public void onBlockPlace(ChangeBlockEvent.Place event) {
@@ -26,19 +32,23 @@ public class PlayerPlaceBlockListener {
 		Player player = playerOptional.get();
 		String uuid = player.getUniqueId().toString();
 		//Load managers
-		PlayerManager playerManager = Main.access.playerManager;
-		JobManager jobManager = Main.access.jobManager;
-		
+		PlayerManager playerManager = JobsLite.access.playerManager;
+		JobManager jobManager = JobsLite.access.jobManager;
 		if(playerManager.playerExists(uuid)) {
 			String job = playerManager.getCurrentJob(uuid).trim();
 			if(!job.isEmpty()) {
 				if(jobManager.jobExists(job)) {
 					String displayName = jobManager.getDisplayName(job);
 					if(displayName.isEmpty()) return;
+					Optional<UniqueAccount> uOpt = JobsLite.access.economyService.getAccount(UUID.fromString(uuid));
+					if(!uOpt.isPresent()) {
+						return;
+					}
+					account = uOpt.get();
 					for(String block : jobManager.getPlaceBlocks(job)) {
 						for(Transaction<BlockSnapshot> transaction : event.getTransactions()) {
 							if(transaction.isValid()) {
-								BlockState blockTransactionState = transaction.getOriginal().getState();
+								BlockState blockTransactionState = transaction.getFinal().getState();
 								if(block.equalsIgnoreCase(blockTransactionState.toString())||block.equalsIgnoreCase(blockTransactionState.getType().getName())) {
 									//Block is a match!
 									//Get all variables
@@ -83,14 +93,14 @@ public class PlayerPlaceBlockListener {
 										//Player is leveling up
 										if(playerLevel==maxLevel) {
 											//Already at max level
-											Main.access.econManager.addBalance(uuid, currencyReward);
+											addFunds(currencyReward);
 											return;
 										} else {
 											if(playerLevel+1==maxLevel) {
 												playerManager.setLevel(uuid, job, playerLevel+1);
 												//Sound
 												player.playSound(SoundTypes.LEVEL_UP, player.getLocation().getPosition(), 1);
-												Main.access.econManager.addBalance(uuid, currencyReward);
+												addFunds(currencyReward);
 												player.sendMessage(TextUtils.levelUp(player.getName(), playerLevel+1, displayName));
 												//Tell them they are now at the max level
 												player.sendMessage(TextUtils.maxLevel(displayName));
@@ -100,7 +110,7 @@ public class PlayerPlaceBlockListener {
 												playerManager.setLevel(uuid, job, playerLevel+1);
 												//Sound
 												player.playSound(SoundTypes.LEVEL_UP, player.getLocation().getPosition(), 1);
-												Main.access.econManager.addBalance(uuid, currencyReward);
+												addFunds(currencyReward);
 												player.sendMessage(TextUtils.levelUp(player.getName(), playerLevel+1, displayName));
 												//Tell them their new statistics
 												String newExpEq = expEquation.replaceAll("currentLevel", (playerLevel+2)+"");
@@ -110,7 +120,7 @@ public class PlayerPlaceBlockListener {
 										}
 									} else {
 										//Player isn't leveling up
-										Main.access.econManager.addBalance(uuid, currencyReward);
+										addFunds(currencyReward);
 										//If the player is at the max level don't give them exp
 										if(maxLevel==playerLevel) return;
 										playerManager.setExp(uuid, job, playerExp+reward);
@@ -122,6 +132,10 @@ public class PlayerPlaceBlockListener {
 				}
 			}
 		}
+	}
+	
+	private void addFunds(int amount) {
+		account.deposit(JobsLite.access.economyService.getDefaultCurrency(), BigDecimal.valueOf(amount), Cause.of("JobsLite"));
 	}
 	
 }

@@ -1,6 +1,6 @@
 package me.Flibio.JobsLite.Commands;
 
-import me.Flibio.JobsLite.Main;
+import me.Flibio.JobsLite.JobsLite;
 import me.Flibio.JobsLite.Utils.JobManager;
 import me.Flibio.JobsLite.Utils.PlayerManager;
 import me.Flibio.JobsLite.Utils.TextUtils;
@@ -11,22 +11,22 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.util.function.Consumer;
 
 public class JoinCommand implements CommandExecutor{
 	
-	private PlayerManager playerManager = Main.access.playerManager;
-	private JobManager jobManager = Main.access.jobManager;
+	private PlayerManager playerManager = JobsLite.access.playerManager;
+	private JobManager jobManager = JobsLite.access.jobManager;
 	
 	@Override
 	public CommandResult execute(CommandSource source, CommandContext args)
 			throws CommandException {
 		
 		if(!(source instanceof Player)) {
-			source.sendMessage(Texts.builder("You must be a player to use /jobs!").color(TextColors.RED).build());
+			source.sendMessage(Text.builder("You must be a player to use /jobs!").color(TextColors.RED).build());
 			return CommandResult.success();
 		}
 		
@@ -77,7 +77,7 @@ public class JoinCommand implements CommandExecutor{
 				}
 			}
 		} else {
-			source.sendMessage(Texts.builder("An error has occurred!").color(TextColors.RED).build());
+			source.sendMessage(Text.builder("An error has occurred!").color(TextColors.RED).build());
 			return CommandResult.success();
 		}
 		

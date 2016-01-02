@@ -1,6 +1,6 @@
 package me.Flibio.JobsLite.Utils;
 
-import me.Flibio.JobsLite.Main;
+import me.Flibio.JobsLite.JobsLite;
 import me.Flibio.JobsLite.Utils.FileManager.FileType;
 import ninja.leaping.configurate.ConfigurationNode;
 
@@ -22,8 +22,8 @@ public class JobManager {
 	private PlayerManager playerManager;
 	
 	public JobManager() {
-		fileManager = Main.access.fileManager;
-		playerManager = Main.access.playerManager;
+		fileManager = JobsLite.access.fileManager;
+		playerManager = JobsLite.access.playerManager;
 	}
 	
 	/**
@@ -143,7 +143,7 @@ public class JobManager {
 				ConfigurationNode colorNode = root.getNode(jobName).getNode("color");
 				if(colorNode!=null) {
 					String rawColor = colorNode.getString();
-					Optional<TextColor> optional = Main.access.game.getRegistry().getType(TextColor.class, rawColor.toUpperCase());
+					Optional<TextColor> optional = JobsLite.access.game.getRegistry().getType(TextColor.class, rawColor.toUpperCase());
 					if(optional.isPresent()) {
 						return optional.get();
 					} else {

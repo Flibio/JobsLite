@@ -1,6 +1,6 @@
 package me.Flibio.JobsLite.Objects;
 
-import me.Flibio.JobsLite.Main;
+import me.Flibio.JobsLite.JobsLite;
 import me.Flibio.JobsLite.Utils.JobCreationMessages;
 import me.Flibio.JobsLite.Utils.JobManager;
 import me.Flibio.JobsLite.Utils.TextUtils;
@@ -10,9 +10,8 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
-import org.spongepowered.api.event.command.MessageSinkEvent;
+import org.spongepowered.api.event.message.MessageChannelEvent;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
 
@@ -55,23 +54,23 @@ public class CreatingJob {
 	
 	public CreatingJob(Player player) {
 		this.player = player;
-		jobManager = Main.access.jobManager;
+		jobManager = JobsLite.access.jobManager;
 		
 		player.sendMessage(JobCreationMessages.cancelNotification());
 		player.sendMessage(TextUtils.line());
 		player.sendMessage(JobCreationMessages.genericQuestion("What would you like the name of the job to be", "(No Spaces)"));
 		currentTask = CurrentTask.JOB_NAME;
 		
-		Main.access.game.getEventManager().registerListeners(Main.access, this);
+		JobsLite.access.game.getEventManager().registerListeners(JobsLite.access, this);
 	}
 	
 	@Listener
-	public void onChat(MessageSinkEvent.Chat event) {
+	public void onChat(MessageChannelEvent.Chat event) {
 		Optional<Player> playerOptional = event.getCause().first(Player.class);
 		if(!playerOptional.isPresent()) return;
 		Player eventPlayer = playerOptional.get();
 		if(eventPlayer.equals(player)&&currentTask!=CurrentTask.CANCELLED) {
-			if(Texts.toPlain(event.getRawMessage()).toLowerCase().contains("[cancel]")) {
+			if(event.getRawMessage().toPlain().toLowerCase().contains("[cancel]")) {
 				event.setCancelled(true);
 				player.sendMessage(JobCreationMessages.genericSuccess("Successfully cancelled job creation!"));
 				name = "";
@@ -87,7 +86,7 @@ public class CreatingJob {
 		if(currentTask.equals(CurrentTask.JOB_NAME)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				name = Texts.toPlain(event.getRawMessage()).replaceAll(" ", "").trim();
+				name = event.getRawMessage().toPlain().replaceAll(" ", "").trim();
 				if(!jobManager.jobExists(name)) {
 					player.sendMessage(JobCreationMessages.genericSuccess("Successfully registered name: "+name+"!"));
 					player.sendMessage(TextUtils.line());
@@ -100,7 +99,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.JOB_DISPLAY_NAME)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				displayName = Texts.toPlain(event.getRawMessage()).trim();
+				displayName = event.getRawMessage().toPlain().trim();
 				player.sendMessage(JobCreationMessages.genericSuccess("Successfully registered display name: "+displayName+"!"));
 				player.sendMessage(TextUtils.line());
 				player.sendMessage(JobCreationMessages.genericQuestion("What would you like the max-level of the job to be", ""));
@@ -109,7 +108,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.MAX_LEVEL)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getRawMessage()).trim();
+				String input = event.getRawMessage().toPlain().trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -131,7 +130,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.BREAK_CURRENCY)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getRawMessage()).trim();
+				String input = event.getRawMessage().toPlain().trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -152,7 +151,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.PLACE_CURRENCY)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getRawMessage()).trim();
+				String input = event.getRawMessage().toPlain().trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -173,7 +172,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.BREAK_EXP)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getRawMessage()).trim();
+				String input = event.getRawMessage().toPlain().trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -202,7 +201,7 @@ public class CreatingJob {
 		} else if(currentTask.equals(CurrentTask.PLACE_EXP)) {
 			if(eventPlayer.equals(player)) {
 				event.setCancelled(true);
-				String input = Texts.toPlain(event.getRawMessage()).trim();
+				String input = event.getRawMessage().toPlain().trim();
 				int amount;
 				try {
 					amount = Integer.parseInt(input);
@@ -254,9 +253,9 @@ public class CreatingJob {
 	private void colorChoices() {
 		//4x4
 		ArrayList<TextColor> colors1 = new ArrayList<TextColor>(Arrays.asList(TextColors.AQUA, TextColors.BLACK, TextColors.BLUE, TextColors.DARK_AQUA));
-		Text msg1 = Texts.builder().build();
+		Text msg1 = Text.builder().build();
 		for(TextColor currentColor : colors1) {
-			msg1 = msg1.builder().append(Texts.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {@Override public void accept(CommandSource source) {
+			msg1 = msg1.toBuilder().append(Text.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {@Override public void accept(CommandSource source) {
 							if(!currentTask.equals(CurrentTask.COLOR)) return;
 							source.sendMessage(JobCreationMessages.genericSuccess("Set color to "+currentColor.getName(), currentColor));
 							source.sendMessage(TextUtils.line());
@@ -267,9 +266,9 @@ public class CreatingJob {
 					}, currentColor, currentColor.getName())).build();
 		}
 		ArrayList<TextColor> colors2 = new ArrayList<TextColor>(Arrays.asList(TextColors.DARK_BLUE, TextColors.DARK_GRAY, TextColors.DARK_GREEN, TextColors.DARK_PURPLE));
-		Text msg2 = Texts.builder().build();
+		Text msg2 = Text.builder().build();
 		for(TextColor currentColor : colors2) {
-			msg2 = msg2.builder().append(Texts.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {@Override public void accept(CommandSource source) {
+			msg2 = msg2.toBuilder().append(Text.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {@Override public void accept(CommandSource source) {
 							if(!currentTask.equals(CurrentTask.COLOR)) return;
 							source.sendMessage(JobCreationMessages.genericSuccess("Set color to "+color.getName(), currentColor));
 							source.sendMessage(TextUtils.line());
@@ -280,9 +279,9 @@ public class CreatingJob {
 					}, currentColor, currentColor.getName())).build();
 		}
 		ArrayList<TextColor> colors3 = new ArrayList<TextColor>(Arrays.asList(TextColors.DARK_RED, TextColors.GOLD, TextColors.GRAY, TextColors.GREEN));
-		Text msg3 = Texts.builder().build();
+		Text msg3 = Text.builder().build();
 		for(TextColor currentColor : colors3) {
-			msg3 = msg3.builder().append(Texts.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {@Override public void accept(CommandSource source) {
+			msg3 = msg3.toBuilder().append(Text.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {@Override public void accept(CommandSource source) {
 							if(!currentTask.equals(CurrentTask.COLOR)) return;
 							source.sendMessage(JobCreationMessages.genericSuccess("Set color to "+currentColor.getName(), currentColor));
 							source.sendMessage(TextUtils.line());
@@ -293,9 +292,9 @@ public class CreatingJob {
 					}, currentColor, currentColor.getName())).build();
 		}
 		ArrayList<TextColor> colors4 = new ArrayList<TextColor>(Arrays.asList(TextColors.LIGHT_PURPLE, TextColors.RED, TextColors.WHITE, TextColors.YELLOW));
-		Text msg4 = Texts.builder().build();
+		Text msg4 = Text.builder().build();
 		for(TextColor currentColor : colors4) {
-			msg4 = msg4.builder().append(Texts.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {@Override public void accept(CommandSource source) {
+			msg4 = msg4.toBuilder().append(Text.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {@Override public void accept(CommandSource source) {
 							if(!currentTask.equals(CurrentTask.COLOR)) return;
 							source.sendMessage(JobCreationMessages.genericSuccess("Set color to "+color.getName(), currentColor));
 							source.sendMessage(TextUtils.line());

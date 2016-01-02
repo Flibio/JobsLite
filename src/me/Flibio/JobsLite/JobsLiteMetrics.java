@@ -8,10 +8,10 @@ import java.io.IOException;
 
 public class JobsLiteMetrics extends Metrics {
 
-    private Game game = Main.access.game;
+    private Game game = JobsLite.access.game;
 
     public JobsLiteMetrics() throws IOException {
-        super("JobsLite", Main.access.version);
+        super("JobsLite", JobsLite.access.version);
     }
 
     @Override

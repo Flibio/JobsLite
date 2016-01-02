@@ -1,6 +1,5 @@
 package me.Flibio.JobsLite;
 
-import me.Flibio.EconomyLite.API.EconomyLiteAPI;
 import me.Flibio.JobsLite.Commands.CreateCommand;
 import me.Flibio.JobsLite.Commands.JoinCommand;
 import me.Flibio.JobsLite.Commands.SetCommand;
@@ -8,8 +7,6 @@ import me.Flibio.JobsLite.Listeners.PlayerBlockBreakListener;
 import me.Flibio.JobsLite.Listeners.PlayerChatListener;
 import me.Flibio.JobsLite.Listeners.PlayerJoinListener;
 import me.Flibio.JobsLite.Listeners.PlayerPlaceBlockListener;
-import me.Flibio.JobsLite.Utils.EconManager;
-import me.Flibio.JobsLite.Utils.EconManager.EconType;
 import me.Flibio.JobsLite.Utils.FileManager;
 import me.Flibio.JobsLite.Utils.FileManager.FileType;
 import me.Flibio.JobsLite.Utils.HttpUtils;
@@ -24,23 +21,24 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
+import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
+import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.text.Text;
 
-import com.erigitic.service.TEService;
 import com.google.inject.Inject;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Optional;
 
-@Plugin(id = "JobsLite", name = "JobsLite", version = "1.1.2", dependencies = "after:EconomyLite;after:TotalEconomy")
-public class Main {
+@Plugin(id = "JobsLite", name = "JobsLite", version = "1.1.3")
+public class JobsLite {
 	
-	public static Main access;
+	public static JobsLite access;
 	
 	@Inject
 	public Logger logger;
@@ -48,116 +46,108 @@ public class Main {
 	@Inject
 	public Game game;
 	
-	public String version = Main.class.getAnnotation(Plugin.class).version();
+	public String version = JobsLite.class.getAnnotation(Plugin.class).version();
 	
 	public FileManager fileManager;
 	public JobManager jobManager;
 	public PlayerManager playerManager;
-	public EconManager econManager;
+	public EconomyService economyService;
+	
+	private HttpUtils httpUtils;
 	
 	private static HashMap<String, String> configOptions = new HashMap<String, String>();
+	
+	private boolean foundProvider = false;
+	private boolean late = false;
+	
+	@Listener
+	public void onPreInitialize(GamePreInitializationEvent event) {
+		access = this;
+		//Initialze basic plugin managers needed for further initialization
+		fileManager = new FileManager(logger);
+		jobManager = new JobManager();
+		playerManager = new PlayerManager(logger);
+	}
 	
 	@Listener
 	public void onServerInitialize(GameInitializationEvent event) {
 		logger.info("JobsLite by Flibio initializing!");
-		//Set the access
-		access = this;
-		
-		fileManager = new FileManager();
 		fileManager.loadFile(FileType.CONFIGURATION);
 		fileManager.loadFile(FileType.PLAYER_DATA);
-		fileManager.loadFile(FileType.JOBS_DATA);
-		jobManager = new JobManager();
-		playerManager = new PlayerManager();
-		econManager = new EconManager();
+		fileManager.loadFile(FileType.JOBS_DATA);	
 		
 		initializeFiles();
 		loadConfigurationOptions();
 	}
 	
 	@Listener
+	public void onChangeServiceProvider(ChangeServiceProviderEvent event) {
+		if(event.getService().equals(EconomyService.class)&&!late) {
+			Object raw = event.getNewProviderRegistration().getProvider();
+			if(raw instanceof EconomyService) {
+				foundProvider = true;
+				economyService = (EconomyService) raw;
+			} else {
+				foundProvider = false;
+			}
+		}
+	}
+	
+	@Listener
 	public void onPostInitialization(GamePostInitializationEvent event) {
-		if(game.getPluginManager().getPlugin("EconomyLite").isPresent()&&game.getPluginManager().getPlugin("TotalEconomy").isPresent()) {
-			logger.error("You have two economy plugins installed!... JobsLite will not function!");
-			return;
-		}
-		if(!game.getPluginManager().getPlugin("EconomyLite").isPresent()&&!game.getPluginManager().getPlugin("TotalEconomy").isPresent()) {
-			//Disable plugin
-			logger.error("You have no economy plugins installed!... JobsLite will not function!");
-			return;
-		}
-		if(game.getPluginManager().getPlugin("EconomyLite").isPresent()) {
-			Optional<EconomyLiteAPI> service = Main.access.game.getServiceManager().provide(EconomyLiteAPI.class);
-			if(service.isPresent()) {
-				EconomyLiteAPI economyLite = service.get();
-				econManager.initialize(EconType.ECONOMY_LITE, economyLite, null);
-				logger.info("Using EconomyLite as an economy!");
-			} else {
-				//Disable plugin
-				logger.error("Could not load an Economy API... JobsLite will not function!");
-				return;
+		httpUtils = new HttpUtils();
+		if(foundProvider) {
+			//Register events and commands
+			registerEvents();
+			registerCommands();
+			//Schedule async task to auto-save files
+			game.getScheduler().createTaskBuilder().execute(new Runnable() {
+				public void run() {
+					//Save all of the files
+					fileManager.saveAllFiles();
+				}
+			}).async().delayTicks(10000).intervalTicks(5000).submit(this);
+			
+			//Plugin Metrics
+			try {
+				JobsLiteMetrics metrics = new JobsLiteMetrics();
+				if (!metrics.isOptOut()&&optionEnabled("pluginMetrics")) {
+					logger.info("PluginMetrics enabled!");
+					metrics.start();
+				} else {
+					logger.info("PluginMetrics disabled!");
+				}
+			} catch (IOException e) {
+				logger.error("Error enabling plugin metrics!");
 			}
-		} else if(game.getPluginManager().getPlugin("TotalEconomy").isPresent()) {
-			Optional<TEService> service = Main.access.game.getServiceManager().provide(TEService.class);
-			if(service.isPresent()) {
-				TEService totalEconomy = service.get();
-				econManager.initialize(EconType.TOTAL_ECONOMY, null, totalEconomy);
-				logger.info("Using TotalEconomy as an economy!");
-			} else {
-				//Disable plugin
-				logger.error("Could not load an Economy API... JobsLite will not function!");
-				return;
-			}
-		} else {
-			//Disable plugin
-			logger.error("Error loading economy plugins... JobsLite will not function!");
-			return;
-		}
-		
-		registerEvents();
-		registerCommands();
-		
-		//Schedule async task to auto-save files
-		game.getScheduler().createTaskBuilder().execute(new Runnable() {
-			public void run() {
-				//Save all of the files
-				fileManager.saveAllFiles();
-			}
-		}).async().delayTicks(10000).intervalTicks(5000).submit(this);
-		
-		//Plugin Metrics
-		try {
-			JobsLiteMetrics metrics = new JobsLiteMetrics();
-			if (!metrics.isOptOut()&&optionEnabled("pluginMetrics")) {
-				logger.info("PluginMetrics enabled!");
-				metrics.start();
-			} else {
-				logger.info("PluginMetrics disabled!");
-			}
-		} catch (IOException e) {
-			logger.error("Error enabling plugin metrics!");
 		}
 	}
 	
 	@Listener
 	public void onServerStart(GameStartedServerEvent event) {
+		late = true;
+		if(!foundProvider) {
+			logger.error("JobsLite failed to load an economy plugin!");
+			logger.error("It will no longer function!");
+			return;
+		}
 		if(!optionEnabled("updateNotifications")) return;
 		game.getScheduler().createTaskBuilder().execute(new Runnable() {
 			public void run() {
 				//Check for an update
 				JsonUtils jsonUtils = new JsonUtils();
 				//Check for an update
-				String latest = HttpUtils.requestData("https://api.github.com/repos/Flibio/JobsLite/releases/latest");
+				String latest = httpUtils.requestData("https://api.github.com/repos/Flibio/JobsLite/releases/latest");
 				if(latest.isEmpty()) return;
 				String version = jsonUtils.getVersion(latest).replace("v", "");
-				String changes = HttpUtils.requestData("https://flibio.github.io/JobsLite/changelogs/"+version.replaceAll("\\.", "-")+".txt");
+				String changes = httpUtils.requestData("https://flibio.github.io/JobsLite/changelogs/"+version.replaceAll("\\.", "-")+".txt");
 				String[] iChanges = changes.split(";");
 				String url = jsonUtils.getUrl(latest);
 				boolean prerelease = jsonUtils.isPreRelease(latest);
 				//Make sure the latest update is not a prerelease
 				if(!prerelease) {
 					//Check if the latest update is newer than the current one
-					String currentVersion = Main.access.version;
+					String currentVersion = JobsLite.access.version;
 					if(jsonUtils.versionCompare(version, currentVersion)>0) {
 						logger.info("JobsLite v"+version+" is now available to download!");
 						logger.info(url);
@@ -174,11 +164,13 @@ public class Main {
 	
 	@Listener
 	public void serverStop(GameStoppingServerEvent event) {
+		if(!foundProvider) return;
 		fileManager.saveAllFiles();
 	}
 	
 	@Listener
 	public void onPlayerDisconnect(ClientConnectionEvent.Disconnect event) {
+		if(!foundProvider) return;
 		fileManager.saveAllFiles();
 	}
 	
@@ -212,23 +204,23 @@ public class Main {
 	
 	private void registerCommands() {
 		CommandSpec createCommand = CommandSpec.builder()
-		    .description(Texts.of("Create a new job"))
+		    .description(Text.of("Create a new job"))
 		    .permission("jobs.admin.create")
 		    .executor(new CreateCommand())
 		    .build();
 		CommandSpec joinCommand = CommandSpec.builder()
-		    .description(Texts.of("Join a job"))
+		    .description(Text.of("Join a job"))
 		    .permission("jobs.join")
 		    .executor(new JoinCommand())
 		    .build();
 		CommandSpec setCommand = CommandSpec.builder()
-			    .description(Texts.of("Set a player's job"))
+			    .description(Text.of("Set a player's job"))
 			    .permission("jobs.set")
-			     .arguments(GenericArguments.string(Texts.of("target")))
+			     .arguments(GenericArguments.string(Text.of("target")))
 			    .executor(new SetCommand())
 			    .build();
 		CommandSpec jobsCommand = CommandSpec.builder()
-		    .description(Texts.of("Jobs commands"))
+		    .description(Text.of("Jobs commands"))
 		    .child(createCommand, "create")
 		    .child(joinCommand, "join")
 		    .child(setCommand, "set")

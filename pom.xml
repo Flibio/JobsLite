@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>JobsLite</groupId>
   <artifactId>JobsLite</artifactId>
-  <version>1.1.2</version>
+  <version>1.1.3</version>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
@@ -28,23 +28,14 @@
             <enabled>true</enabled>
         </snapshots>
     </repository>
-    <repository>
-	    <id>jitpack.io</id>
-	    <url>https://jitpack.io</url>
-	</repository>
 </repositories>
 
 <dependencies>
     <dependency>
         <groupId>org.spongepowered</groupId>
         <artifactId>spongeapi</artifactId>
-        <version>2.1-SNAPSHOT</version>
+        <version>3.0.1-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
-    <dependency>
-	    <groupId>com.github.Flibio</groupId>
-	    <artifactId>EconomyLite</artifactId>
-	    <version>RELEASE</version>
-	</dependency>
 </dependencies>
 </project>

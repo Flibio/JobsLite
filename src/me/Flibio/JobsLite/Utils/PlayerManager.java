@@ -1,6 +1,6 @@
 package me.Flibio.JobsLite.Utils;
 
-import me.Flibio.JobsLite.Main;
+import me.Flibio.JobsLite.JobsLite;
 import me.Flibio.JobsLite.Utils.FileManager.FileType;
 import ninja.leaping.configurate.ConfigurationNode;
 
@@ -17,10 +17,10 @@ public class PlayerManager {
 	private JobManager jobManager;
 	private Logger logger;
 	
-	public PlayerManager() {
-		fileManager = Main.access.fileManager;
-		jobManager = Main.access.jobManager;
-		logger = Main.access.logger;
+	public PlayerManager(Logger logger) {
+		fileManager = JobsLite.access.fileManager;
+		jobManager = JobsLite.access.jobManager;
+		this.logger = logger;
 	}
 	
 	/**
@@ -31,7 +31,7 @@ public class PlayerManager {
 	 * 	String of the UUID found(blank string if an error occured)
 	 */
 	public String getUUID(String name) {
-		GameProfileManager manager = Main.access.game.getServer().getGameProfileManager();
+		GameProfileManager manager = JobsLite.access.game.getServer().getGameProfileManager();
 		GameProfile profile;
 		try {
 			profile = manager.get(name).get();
