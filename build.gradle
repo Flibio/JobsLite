@@ -1,19 +1,68 @@
-group 'me.Flibio'
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'idea'
+    id 'maven'
+    id 'com.github.hierynomus.license' version '0.12.1'
+    id 'net.ellune.blossom' version '1.0.1'
+}
+
+group 'me.flibio'
 version '1.1.3'
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.5'
+  gradleVersion = '2.9'
   distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
-apply plugin: 'java'
+apply plugin: 'net.ellune.blossom'
 
-sourceCompatibility = 1.5
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+defaultTasks 'licenseFormat'
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': project.name,
+                   'Implementation-Version': project.version
+    }
+}
 
 repositories {
-    mavenCentral()
+    jcenter()
+    maven {
+        name 'Sponge API repo'
+        url 'http://repo.spongepowered.org/maven'
+    }
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile 'org.spongepowered:spongeapi:3.0.1-SNAPSHOT'
+}
+
+license {
+
+    // The project properties to use
+    ext.name = project.name
+    ext.owner = project.owner
+    ext.inceptionYear = project.inceptionYear
+    ext.currentYear = project.currentYear
+
+    // The file that contains the license header
+    header file('HEADER.txt')
+
+    // The source sets to apply the license to
+    sourceSets = project.sourceSets
+
+    ignoreFailures false
+    strictCheck true
+
+    mapping {
+        java = 'SLASHSTAR_STYLE'
+    }
+}
+
+blossom {
+    replaceToken '@project.version@', project.version, 'src/main/java/me/flibio/jobslite/PluginInfo.java'
 }
