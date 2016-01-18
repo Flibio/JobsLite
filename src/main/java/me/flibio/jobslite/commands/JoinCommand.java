@@ -55,8 +55,7 @@ public class JoinCommand implements CommandExecutor{
 		}
 		
 		final Player player = (Player) source;
-		final String uuid = player.getUniqueId().toString();
-		if(playerManager.playerExists(uuid)) {
+		if(playerManager.playerExists(player)) {
 			player.sendMessage(TextUtils.instruction("click on the job you would like to join"));
 			player.sendMessage(TextUtils.error("This will reset your current level and exp for the job!"));
 			for( String job : jobManager.getJobs()) {
@@ -67,7 +66,7 @@ public class JoinCommand implements CommandExecutor{
 
 							@Override
 							public void accept(CommandSource source) {
-								if(playerManager.getCurrentJob(uuid).equalsIgnoreCase(job)) {
+								if(playerManager.getCurrentJob(player).equalsIgnoreCase(job)) {
 									player.sendMessage(TextUtils.error("You are already a "+job+"!"));
 									return;
 								}
@@ -76,7 +75,7 @@ public class JoinCommand implements CommandExecutor{
 
 									@Override
 									public void accept(CommandSource source) {
-										if(!playerManager.setJob(uuid, job)) {
+										if(!playerManager.setJob(player, job)) {
 											player.sendMessage(TextUtils.error("An error has occured!"));
 											return;
 										}

@@ -24,22 +24,30 @@
  */
 package me.flibio.jobslite;
 
+import static me.flibio.jobslite.PluginInfo.DEPENDENCIES;
+import static me.flibio.jobslite.PluginInfo.ID;
+import static me.flibio.jobslite.PluginInfo.NAME;
+import static me.flibio.jobslite.PluginInfo.VERSION;
 import me.flibio.jobslite.commands.CreateCommand;
 import me.flibio.jobslite.commands.JoinCommand;
 import me.flibio.jobslite.commands.SetCommand;
+import me.flibio.jobslite.data.ImmutableJobData;
+import me.flibio.jobslite.data.JobData;
+import me.flibio.jobslite.data.JobDataManipulatorBuilder;
 import me.flibio.jobslite.listeners.PlayerBlockBreakListener;
 import me.flibio.jobslite.listeners.PlayerChatListener;
 import me.flibio.jobslite.listeners.PlayerJoinListener;
 import me.flibio.jobslite.listeners.PlayerPlaceBlockListener;
 import me.flibio.jobslite.utils.FileManager;
+import me.flibio.jobslite.utils.FileManager.FileType;
 import me.flibio.jobslite.utils.HttpUtils;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.JsonUtils;
 import me.flibio.jobslite.utils.PlayerManager;
-import me.flibio.jobslite.utils.FileManager.FileType;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.event.Listener;
@@ -58,8 +66,6 @@ import com.google.inject.Inject;
 
 import java.io.IOException;
 import java.util.HashMap;
-
-import static me.flibio.jobslite.PluginInfo.*;
 
 @Plugin(id = ID, name = NAME, version = VERSION, dependencies = DEPENDENCIES)
 public class JobsLite {
@@ -89,6 +95,8 @@ public class JobsLite {
 	@Listener
 	public void onPreInitialize(GamePreInitializationEvent event) {
 		access = this;
+		//Register the custom data
+		Sponge.getDataManager().register(JobData.class, ImmutableJobData.class, new JobDataManipulatorBuilder());
 		//Initialze basic plugin managers needed for further initialization
 		fileManager = new FileManager(logger);
 		jobManager = new JobManager();

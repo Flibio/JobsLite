@@ -43,11 +43,9 @@ public class JobManager {
 	}
 	
 	private FileManager fileManager;
-	private PlayerManager playerManager;
 	
 	public JobManager() {
 		fileManager = JobsLite.access.fileManager;
-		playerManager = JobsLite.access.playerManager;
 	}
 	
 	/**
@@ -375,10 +373,6 @@ public class JobManager {
 		ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
 		if(root.getNode(jobName)==null) return false;
 		root.getNode(jobName).setValue(null);
-		for(String uuid : playerManager.getPlayers()) {
-			playerManager.clearJob(uuid, jobName);
-		}
-		
 		return true;
 	}
 	
