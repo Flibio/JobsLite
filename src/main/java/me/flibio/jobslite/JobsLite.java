@@ -2,7 +2,7 @@
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
  * Copyright (c) 2015 - 2016 Flibio
- * Copyright (c) contributors
+ * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,10 @@
  */
 package me.flibio.jobslite;
 
+import static me.flibio.jobslite.PluginInfo.DEPENDENCIES;
+import static me.flibio.jobslite.PluginInfo.ID;
+import static me.flibio.jobslite.PluginInfo.NAME;
+import static me.flibio.jobslite.PluginInfo.VERSION;
 import me.flibio.jobslite.commands.CreateCommand;
 import me.flibio.jobslite.commands.JoinCommand;
 import me.flibio.jobslite.commands.SetCommand;
@@ -58,8 +62,6 @@ import com.google.inject.Inject;
 
 import java.io.IOException;
 import java.util.HashMap;
-
-import static me.flibio.jobslite.PluginInfo.*;
 
 @Plugin(id = ID, name = NAME, version = VERSION, dependencies = DEPENDENCIES)
 public class JobsLite {

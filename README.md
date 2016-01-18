@@ -1,8 +1,6 @@
 JobsLite
 ========
 
-**Currently not stable and under heavy development**
-
 A minecraft plugin for Sponge platforms.
 Dedicated Jobs plugin.
 
