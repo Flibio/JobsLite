@@ -2,7 +2,7 @@
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
  * Copyright (c) 2015 - 2016 Flibio
- * Copyright (c) contributors
+ * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,11 +32,11 @@ import me.flibio.jobslite.listeners.PlayerChatListener;
 import me.flibio.jobslite.listeners.PlayerJoinListener;
 import me.flibio.jobslite.listeners.PlayerPlaceBlockListener;
 import me.flibio.jobslite.utils.FileManager;
-import me.flibio.jobslite.utils.FileManager.FileType;
 import me.flibio.jobslite.utils.HttpUtils;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.JsonUtils;
 import me.flibio.jobslite.utils.PlayerManager;
+import me.flibio.jobslite.utils.FileManager.FileType;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
