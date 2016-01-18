@@ -31,6 +31,9 @@ import static me.flibio.jobslite.PluginInfo.VERSION;
 import me.flibio.jobslite.commands.CreateCommand;
 import me.flibio.jobslite.commands.JoinCommand;
 import me.flibio.jobslite.commands.SetCommand;
+import me.flibio.jobslite.data.ImmutableJobData;
+import me.flibio.jobslite.data.JobData;
+import me.flibio.jobslite.data.JobDataManipulatorBuilder;
 import me.flibio.jobslite.listeners.PlayerBlockBreakListener;
 import me.flibio.jobslite.listeners.PlayerChatListener;
 import me.flibio.jobslite.listeners.PlayerJoinListener;
@@ -44,6 +47,7 @@ import me.flibio.jobslite.utils.PlayerManager;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.event.Listener;
@@ -91,6 +95,8 @@ public class JobsLite {
 	@Listener
 	public void onPreInitialize(GamePreInitializationEvent event) {
 		access = this;
+		//Register the custom data
+		Sponge.getDataManager().register(JobData.class, ImmutableJobData.class, new JobDataManipulatorBuilder());
 		//Initialze basic plugin managers needed for further initialization
 		fileManager = new FileManager(logger);
 		jobManager = new JobManager();

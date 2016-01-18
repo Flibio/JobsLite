@@ -25,11 +25,16 @@
 package me.flibio.jobslite.listeners;
 
 import me.flibio.jobslite.JobsLite;
+import me.flibio.jobslite.data.JobData;
+import me.flibio.jobslite.data.JobDataManipulatorBuilder;
+import me.flibio.jobslite.data.JobInfo;
 import me.flibio.jobslite.utils.HttpUtils;
+import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.JsonUtils;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
@@ -37,12 +42,18 @@ import org.spongepowered.api.event.network.ClientConnectionEvent;
 public class PlayerJoinListener {
 	
 	private PlayerManager playerManager = JobsLite.access.playerManager;
+	private JobManager jobManager = JobsLite.access.jobManager;
 	private HttpUtils httpUtils = new HttpUtils();
 	
 	@Listener
 	public void onPlayerJoin(ClientConnectionEvent.Join event) {
-		playerManager.addPlayer(event.getTargetEntity().getUniqueId().toString());
+		playerManager.addPlayer(event.getTargetEntity());
 		Player player = event.getTargetEntity();
+		if(!jobManager.jobExists(playerManager.getCurrentJob(player))) {
+			JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
+			JobData data = builder.setJobInfo(new JobInfo("",0,0)).create();
+			player.offer(data);
+		}
 		JobsLite.access.economyService.createAccount(player.getUniqueId());
 		JobsLite.access.game.getScheduler().createTaskBuilder().execute(new Runnable() {
 			public void run() {
