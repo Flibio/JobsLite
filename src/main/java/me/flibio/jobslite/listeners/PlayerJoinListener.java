@@ -25,11 +25,18 @@
 package me.flibio.jobslite.listeners;
 
 import me.flibio.jobslite.JobsLite;
+import me.flibio.jobslite.data.JobData;
+import me.flibio.jobslite.data.JobDataManipulatorBuilder;
+import me.flibio.jobslite.utils.FileManager;
+import me.flibio.jobslite.utils.FileManager.FileType;
 import me.flibio.jobslite.utils.HttpUtils;
+import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.JsonUtils;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
+import ninja.leaping.configurate.ConfigurationNode;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
@@ -37,12 +44,20 @@ import org.spongepowered.api.event.network.ClientConnectionEvent;
 public class PlayerJoinListener {
 	
 	private PlayerManager playerManager = JobsLite.access.playerManager;
+	private JobManager jobManager = JobsLite.access.jobManager;
+	private FileManager fileManager = JobsLite.access.fileManager;
 	private HttpUtils httpUtils = new HttpUtils();
 	
 	@Listener
 	public void onPlayerJoin(ClientConnectionEvent.Join event) {
-		playerManager.addPlayer(event.getTargetEntity().getUniqueId().toString());
 		Player player = event.getTargetEntity();
+		playerManager.addPlayer(player);
+		attemptMove(player);
+		if(!jobManager.jobExists(playerManager.getCurrentJob(player))) {
+			JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
+			JobData data = builder.setJobInfo("",0,0).create();
+			player.offer(data);
+		}
 		JobsLite.access.economyService.createAccount(player.getUniqueId());
 		JobsLite.access.game.getScheduler().createTaskBuilder().execute(new Runnable() {
 			public void run() {
@@ -73,5 +88,30 @@ public class PlayerJoinListener {
 				}
 			}
 		}).async().submit(JobsLite.access);
+	}
+	
+	private void attemptMove(Player player) {
+		String uuid = player.getUniqueId().toString();
+		fileManager.loadFile(FileType.PLAYER_DATA);
+		ConfigurationNode root = fileManager.getFile(FileType.PLAYER_DATA);
+		if(root!=null) {
+			ConfigurationNode playerNode = root.getNode(uuid);
+			if(playerNode!=null) {
+				for(Object raw : playerNode.getChildrenMap().keySet()) {
+					if(raw instanceof String) {
+						String jobName = (String) raw;
+						ConfigurationNode levelNode = root.getNode(uuid).getNode(jobName).getNode("level");
+						ConfigurationNode expNode = root.getNode(uuid).getNode(jobName).getNode("exp");
+						if(levelNode!=null&&expNode!=null) {
+							int level = levelNode.getInt();
+							int exp = expNode.getInt();
+							JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
+							JobData data = builder.setJobInfo(jobName,level,exp).create();
+							player.offer(data);
+						}
+					}
+				}
+			}
+		}
 	}
 }

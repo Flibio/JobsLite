@@ -26,10 +26,10 @@ package me.flibio.jobslite.listeners;
 
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.utils.JobManager;
+import me.flibio.jobslite.utils.JobManager.ActionType;
 import me.flibio.jobslite.utils.NumberUtils;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
-import me.flibio.jobslite.utils.JobManager.ActionType;
 
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
@@ -43,7 +43,6 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.UUID;
 
 public class PlayerBlockBreakListener {
 	
@@ -54,17 +53,16 @@ public class PlayerBlockBreakListener {
 		Optional<Player> playerOptional = event.getCause().first(Player.class);
 		if(!playerOptional.isPresent()) return;
 		Player player = playerOptional.get();
-		String uuid = player.getUniqueId().toString();
 		//Load managers
 		PlayerManager playerManager = JobsLite.access.playerManager;
 		JobManager jobManager = JobsLite.access.jobManager;
-		if(playerManager.playerExists(uuid)) {
-			String job = playerManager.getCurrentJob(uuid).trim();
+		if(playerManager.playerExists(player)) {
+			String job = playerManager.getCurrentJob(player).trim();
 			if(!job.isEmpty()) {
 				if(jobManager.jobExists(job)) {
 					String displayName = jobManager.getDisplayName(job);
 					if(displayName.isEmpty()) return;
-					Optional<UniqueAccount> uOpt = JobsLite.access.economyService.getAccount(UUID.fromString(uuid));
+					Optional<UniqueAccount> uOpt = JobsLite.access.economyService.getAccount(player.getUniqueId());
 					if(!uOpt.isPresent()) {
 						return;
 					}
@@ -80,10 +78,10 @@ public class PlayerBlockBreakListener {
 									int maxLevel = jobManager.getMaxLevel(job);
 									if(maxLevel<0) return;
 									//Current Level
-									int playerLevel = playerManager.getCurrentLevel(uuid, job);
+									int playerLevel = playerManager.getCurrentLevel(player, job);
 									if(playerLevel<0) return;
 									//Current Exp
-									int playerExp = playerManager.getCurrentExp(uuid, job);
+									int playerExp = playerManager.getCurrentExp(player, job);
 									if(playerExp<0) return;
 									//Base exp reward
 									int baseExpReward = jobManager.getExpReward(job, block, ActionType.BREAK);
@@ -121,7 +119,7 @@ public class PlayerBlockBreakListener {
 											return;
 										} else {
 											if(playerLevel+1==maxLevel) {
-												playerManager.setLevel(uuid, job, playerLevel+1);
+												playerManager.setLevel(player, job, playerLevel+1);
 												//Sound
 												player.playSound(SoundTypes.LEVEL_UP, player.getLocation().getPosition(), 1);
 												addFunds(currencyReward);
@@ -130,8 +128,8 @@ public class PlayerBlockBreakListener {
 												player.sendMessage(TextUtils.maxLevel(displayName));
 											} else {
 												int expLeft = reward-(expRequired - playerExp);
-												playerManager.setExp(uuid, job, expLeft);
-												playerManager.setLevel(uuid, job, playerLevel+1);
+												playerManager.setExp(player, job, expLeft);
+												playerManager.setLevel(player, job, playerLevel+1);
 												//Sound
 												player.playSound(SoundTypes.LEVEL_UP, player.getLocation().getPosition(), 1);
 												addFunds(currencyReward);
@@ -147,7 +145,7 @@ public class PlayerBlockBreakListener {
 										addFunds(currencyReward);
 										//If the player is at the max level don't give them exp
 										if(maxLevel==playerLevel) return;
-										playerManager.setExp(uuid, job, playerExp+reward);
+										playerManager.setExp(player, job, playerExp+reward);
 									}
 								}
 							}	
