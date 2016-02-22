@@ -29,11 +29,8 @@ import me.flibio.jobslite.data.JobData;
 import me.flibio.jobslite.data.JobDataManipulatorBuilder;
 import me.flibio.jobslite.utils.FileManager;
 import me.flibio.jobslite.utils.FileManager.FileType;
-import me.flibio.jobslite.utils.HttpUtils;
 import me.flibio.jobslite.utils.JobManager;
-import me.flibio.jobslite.utils.JsonUtils;
 import me.flibio.jobslite.utils.PlayerManager;
-import me.flibio.jobslite.utils.TextUtils;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import org.spongepowered.api.Sponge;
@@ -46,7 +43,6 @@ public class PlayerJoinListener {
 	private PlayerManager playerManager = JobsLite.access.playerManager;
 	private JobManager jobManager = JobsLite.access.jobManager;
 	private FileManager fileManager = JobsLite.access.fileManager;
-	private HttpUtils httpUtils = new HttpUtils();
 	
 	@Listener
 	public void onPlayerJoin(ClientConnectionEvent.Join event) {
@@ -59,35 +55,6 @@ public class PlayerJoinListener {
 			player.offer(data);
 		}
 		JobsLite.access.economyService.createAccount(player.getUniqueId());
-		JobsLite.access.game.getScheduler().createTaskBuilder().execute(new Runnable() {
-			public void run() {
-				if(player.hasPermission("jobs.admin.updates")&&JobsLite.optionEnabled("updateNotifications")) {
-					JsonUtils jsonUtils = new JsonUtils();
-					TextUtils textUtils = new TextUtils();
-					//Get the data
-					String latest = httpUtils.requestData("https://api.github.com/repos/Flibio/JobsLite/releases/latest");
-					if(latest.isEmpty()) return;
-					String version = jsonUtils.getVersion(latest).replace("v", "");
-					String changes = httpUtils.requestData("https://flibio.github.io/JobsLite/changelogs/"+version.replaceAll("\\.", "-")+".txt");
-					String[] iChanges = changes.split(";");
-					String url = jsonUtils.getUrl(latest);
-					boolean prerelease = jsonUtils.isPreRelease(latest);
-					//Make sure the latest update is not a prerelease
-					if(!prerelease) {
-						//Check if the latest update is newer than the current one
-						String currentVersion = JobsLite.access.version;
-						if(jsonUtils.versionCompare(version, currentVersion)>0) {
-							player.sendMessage(textUtils.updateAvailable(version, url));
-							for(String change : iChanges) {
-								if(!change.trim().isEmpty()) {
-									player.sendMessage(textUtils.change(change));
-								}
-							}
-						}
-					}
-				}
-			}
-		}).async().submit(JobsLite.access);
 	}
 	
 	private void attemptMove(Player player) {

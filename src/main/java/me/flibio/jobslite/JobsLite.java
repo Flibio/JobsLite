@@ -40,10 +40,10 @@ import me.flibio.jobslite.listeners.PlayerJoinListener;
 import me.flibio.jobslite.listeners.PlayerPlaceBlockListener;
 import me.flibio.jobslite.utils.FileManager;
 import me.flibio.jobslite.utils.FileManager.FileType;
-import me.flibio.jobslite.utils.HttpUtils;
 import me.flibio.jobslite.utils.JobManager;
-import me.flibio.jobslite.utils.JsonUtils;
 import me.flibio.jobslite.utils.PlayerManager;
+import me.flibio.updatifier.Updatifier;
+import net.minecrell.mcstats.SpongeStatsLite;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
@@ -66,6 +66,7 @@ import com.google.inject.Inject;
 
 import java.util.HashMap;
 
+@Updatifier(repoName = "JobsLite", repoOwner = "Flibio", version = "v"+VERSION)
 @Plugin(id = ID, name = NAME, version = VERSION, dependencies = DEPENDENCIES)
 public class JobsLite {
 	public static JobsLite access;
@@ -76,14 +77,15 @@ public class JobsLite {
 	@Inject
 	public Game game;
 	
+	@Inject
+    private SpongeStatsLite statsLite;
+	
 	public String version = JobsLite.class.getAnnotation(Plugin.class).version();
 	
 	public FileManager fileManager;
 	public JobManager jobManager;
 	public PlayerManager playerManager;
 	public EconomyService economyService;
-	
-	private HttpUtils httpUtils;
 	
 	private static HashMap<String, String> configOptions = new HashMap<String, String>();
 	
@@ -104,6 +106,7 @@ public class JobsLite {
 	@Listener
 	public void onServerInitialize(GameInitializationEvent event) {
 		logger.info("JobsLite by Flibio initializing!");
+		this.statsLite.start();
 		fileManager.loadFile(FileType.CONFIGURATION);
 		fileManager.loadFile(FileType.PLAYER_DATA);
 		fileManager.loadFile(FileType.JOBS_DATA);	
@@ -127,7 +130,6 @@ public class JobsLite {
 	
 	@Listener
 	public void onPostInitialization(GamePostInitializationEvent event) {
-		httpUtils = new HttpUtils();
 		if(foundProvider) {
 			//Register events and commands
 			registerEvents();
@@ -150,41 +152,6 @@ public class JobsLite {
 			logger.error("It will no longer function!");
 			return;
 		}
-		if(optionEnabled("statistics")) {
-			logger.info("Started JobsLite Statistics!");
-			game.getEventManager().registerListeners(this, new Statistics());
-		} else {
-			logger.info("JobsLite Statistics are disabled!");
-		}
-		if(!optionEnabled("updateNotifications")) return;
-		game.getScheduler().createTaskBuilder().execute(new Runnable() {
-			public void run() {
-				//Check for an update
-				JsonUtils jsonUtils = new JsonUtils();
-				//Check for an update
-				String latest = httpUtils.requestData("https://api.github.com/repos/Flibio/JobsLite/releases/latest");
-				if(latest.isEmpty()) return;
-				String version = jsonUtils.getVersion(latest).replace("v", "");
-				String changes = httpUtils.requestData("https://flibio.github.io/JobsLite/changelogs/"+version.replaceAll("\\.", "-")+".txt");
-				String[] iChanges = changes.split(";");
-				String url = jsonUtils.getUrl(latest);
-				boolean prerelease = jsonUtils.isPreRelease(latest);
-				//Make sure the latest update is not a prerelease
-				if(!prerelease) {
-					//Check if the latest update is newer than the current one
-					String currentVersion = JobsLite.access.version;
-					if(jsonUtils.versionCompare(version, currentVersion)>0) {
-						logger.info("JobsLite v"+version+" is now available to download!");
-						logger.info(url);
-						for(String change : iChanges) {
-							if(!change.trim().isEmpty()) {
-								logger.info("+ "+change);
-							}
-						}
-					}
-				}
-			}
-		}).async().submit(this);
 	}
 	
 	@Listener
@@ -216,15 +183,11 @@ public class JobsLite {
 		
 		fileManager.testDefault("Display-Level", "enabled");
 		fileManager.testDefault("Chat-Prefixes", "enabled");
-		fileManager.testDefault("Plugin-Statistics", "enabled");
-		fileManager.testDefault("Update-Notifications", "enabled");
 	}
 	
 	private void loadConfigurationOptions() {
 		configOptions.put("displayLevel", fileManager.getConfigValue("Display-Level"));
 		configOptions.put("chatPrefixes", fileManager.getConfigValue("Chat-Prefixes"));
-		configOptions.put("statistics", fileManager.getConfigValue("Plugin-Statistics"));
-		configOptions.put("updateNotifications", fileManager.getConfigValue("Update-Notifications"));
 	}
 	
 	private void registerCommands() {
