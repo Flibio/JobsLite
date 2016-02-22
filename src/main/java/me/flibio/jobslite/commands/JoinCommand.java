@@ -40,68 +40,68 @@ import org.spongepowered.api.text.format.TextColors;
 
 import java.util.function.Consumer;
 
-public class JoinCommand implements CommandExecutor{
-	
-	private PlayerManager playerManager = JobsLite.access.playerManager;
-	private JobManager jobManager = JobsLite.access.jobManager;
-	
-	@Override
-	public CommandResult execute(CommandSource source, CommandContext args)
-			throws CommandException {
-		
-		if(!(source instanceof Player)) {
-			source.sendMessage(Text.builder("You must be a player to use /jobs!").color(TextColors.RED).build());
-			return CommandResult.success();
-		}
-		
-		final Player player = (Player) source;
-		if(playerManager.playerExists(player)) {
-			player.sendMessage(TextUtils.instruction("click on the job you would like to join"));
-			player.sendMessage(TextUtils.error("This will reset your current level and exp for the job!"));
-			for( String job : jobManager.getJobs()) {
-				if(jobManager.jobExists(job)) {
-					final String displayName = jobManager.getDisplayName(job);
-					if(!displayName.isEmpty()) {
-						player.sendMessage(TextUtils.option(new Consumer<CommandSource>() {
+public class JoinCommand implements CommandExecutor {
 
-							@Override
-							public void accept(CommandSource source) {
-								if(playerManager.getCurrentJob(player).equalsIgnoreCase(job)) {
-									player.sendMessage(TextUtils.error("You are already a "+job+"!"));
-									return;
-								}
-								player.sendMessage(TextUtils.success("Are you sure you want to become a "+displayName+"?",TextColors.GREEN));
-								player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
+    private PlayerManager playerManager = JobsLite.access.playerManager;
+    private JobManager jobManager = JobsLite.access.jobManager;
 
-									@Override
-									public void accept(CommandSource source) {
-										if(!playerManager.setJob(player, job)) {
-											player.sendMessage(TextUtils.error("An error has occured!"));
-											return;
-										}
-										player.sendMessage(TextUtils.success("You are now a "+displayName+"!",TextColors.GREEN));
-									}
-									
-								}));
-								player.sendMessage(TextUtils.noOption(new Consumer<CommandSource>() {
+    @Override
+    public CommandResult execute(CommandSource source, CommandContext args)
+            throws CommandException {
 
-									@Override
-									public void accept(CommandSource source) {
-										player.sendMessage(TextUtils.error("If you change your mind, you can click any of the above options again!"));
-									}
-									
-								}));
-							}
-							
-						}, jobManager.getColor(job), displayName));
-					}
-				}
-			}
-		} else {
-			source.sendMessage(Text.builder("An error has occurred!").color(TextColors.RED).build());
-			return CommandResult.success();
-		}
-		
-		return CommandResult.success();
-	}
+        if (!(source instanceof Player)) {
+            source.sendMessage(Text.builder("You must be a player to use /jobs!").color(TextColors.RED).build());
+            return CommandResult.success();
+        }
+
+        final Player player = (Player) source;
+        if (playerManager.playerExists(player)) {
+            player.sendMessage(TextUtils.instruction("click on the job you would like to join"));
+            player.sendMessage(TextUtils.error("This will reset your current level and exp for the job!"));
+            for (String job : jobManager.getJobs()) {
+                if (jobManager.jobExists(job)) {
+                    final String displayName = jobManager.getDisplayName(job);
+                    if (!displayName.isEmpty()) {
+                        player.sendMessage(TextUtils.option(new Consumer<CommandSource>() {
+
+                            @Override
+                            public void accept(CommandSource source) {
+                                if (playerManager.getCurrentJob(player).equalsIgnoreCase(job)) {
+                                    player.sendMessage(TextUtils.error("You are already a " + job + "!"));
+                                    return;
+                                }
+                                player.sendMessage(TextUtils.success("Are you sure you want to become a " + displayName + "?", TextColors.GREEN));
+                                player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
+
+                                    @Override
+                                    public void accept(CommandSource source) {
+                                        if (!playerManager.setJob(player, job)) {
+                                            player.sendMessage(TextUtils.error("An error has occured!"));
+                                            return;
+                                        }
+                                        player.sendMessage(TextUtils.success("You are now a " + displayName + "!", TextColors.GREEN));
+                                    }
+
+                                }));
+                                player.sendMessage(TextUtils.noOption(new Consumer<CommandSource>() {
+
+                                    @Override
+                                    public void accept(CommandSource source) {
+                                        player.sendMessage(TextUtils.error("If you change your mind, you can click any of the above options again!"));
+                                    }
+
+                                }));
+                            }
+
+                        }, jobManager.getColor(job), displayName));
+                    }
+                }
+            }
+        } else {
+            source.sendMessage(Text.builder("An error has occurred!").color(TextColors.RED).build());
+            return CommandResult.success();
+        }
+
+        return CommandResult.success();
+    }
 }

@@ -29,7 +29,8 @@ package me.flibio.jobslite;
  */
 public class PluginInfo {
 
-    private PluginInfo() {}
+    private PluginInfo() {
+    }
 
     public static final String ID = "JobsLite";
     public static final String NAME = "JobsLite";

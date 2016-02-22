@@ -39,46 +39,47 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 
 public class PlayerJoinListener {
-	
-	private PlayerManager playerManager = JobsLite.access.playerManager;
-	private JobManager jobManager = JobsLite.access.jobManager;
-	private FileManager fileManager = JobsLite.access.fileManager;
-	
-	@Listener
-	public void onPlayerJoin(ClientConnectionEvent.Join event) {
-		Player player = event.getTargetEntity();
-		playerManager.addPlayer(player);
-		attemptMove(player);
-		if(!jobManager.jobExists(playerManager.getCurrentJob(player))) {
-			JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
-			JobData data = builder.setJobInfo("",0,0).create();
-			player.offer(data);
-		}
-		JobsLite.access.economyService.createAccount(player.getUniqueId());
-	}
-	
-	private void attemptMove(Player player) {
-		String uuid = player.getUniqueId().toString();
-		fileManager.loadFile(FileType.PLAYER_DATA);
-		ConfigurationNode root = fileManager.getFile(FileType.PLAYER_DATA);
-		if(root!=null) {
-			ConfigurationNode playerNode = root.getNode(uuid);
-			if(playerNode!=null) {
-				for(Object raw : playerNode.getChildrenMap().keySet()) {
-					if(raw instanceof String) {
-						String jobName = (String) raw;
-						ConfigurationNode levelNode = root.getNode(uuid).getNode(jobName).getNode("level");
-						ConfigurationNode expNode = root.getNode(uuid).getNode(jobName).getNode("exp");
-						if(levelNode!=null&&expNode!=null) {
-							int level = levelNode.getInt();
-							int exp = expNode.getInt();
-							JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
-							JobData data = builder.setJobInfo(jobName,level,exp).create();
-							player.offer(data);
-						}
-					}
-				}
-			}
-		}
-	}
+
+    private PlayerManager playerManager = JobsLite.access.playerManager;
+    private JobManager jobManager = JobsLite.access.jobManager;
+    private FileManager fileManager = JobsLite.access.fileManager;
+
+    @Listener
+    public void onPlayerJoin(ClientConnectionEvent.Join event) {
+        Player player = event.getTargetEntity();
+        playerManager.addPlayer(player);
+        attemptMove(player);
+        if (!jobManager.jobExists(playerManager.getCurrentJob(player))) {
+            JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
+            JobData data = builder.setJobInfo("", 0, 0).create();
+            player.offer(data);
+        }
+        JobsLite.access.economyService.createAccount(player.getUniqueId());
+    }
+
+    private void attemptMove(Player player) {
+        String uuid = player.getUniqueId().toString();
+        fileManager.loadFile(FileType.PLAYER_DATA);
+        ConfigurationNode root = fileManager.getFile(FileType.PLAYER_DATA);
+        if (root != null) {
+            ConfigurationNode playerNode = root.getNode(uuid);
+            if (playerNode != null) {
+                for (Object raw : playerNode.getChildrenMap().keySet()) {
+                    if (raw instanceof String) {
+                        String jobName = (String) raw;
+                        ConfigurationNode levelNode = root.getNode(uuid).getNode(jobName).getNode("level");
+                        ConfigurationNode expNode = root.getNode(uuid).getNode(jobName).getNode("exp");
+                        if (levelNode != null && expNode != null) {
+                            int level = levelNode.getInt();
+                            int exp = expNode.getInt();
+                            JobDataManipulatorBuilder builder =
+                                    (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
+                            JobData data = builder.setJobInfo(jobName, level, exp).create();
+                            player.offer(data);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

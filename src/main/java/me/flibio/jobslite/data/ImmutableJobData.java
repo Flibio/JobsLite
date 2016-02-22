@@ -36,72 +36,72 @@ import com.google.common.collect.ComparisonChain;
 import java.util.Optional;
 
 public class ImmutableJobData extends AbstractImmutableData<ImmutableJobData, JobData> {
-	
-	private int level;
-	private int exp;
-	private String jobName;
 
-	protected ImmutableJobData(String jobName, int level, int exp) {
+    private int level;
+    private int exp;
+    private String jobName;
+
+    protected ImmutableJobData(String jobName, int level, int exp) {
         this.jobName = jobName;
         this.level = level;
         this.exp = exp;
         registerGetters();
     }
-	
-	public ImmutableValue<String> jobName() {
-		return Sponge.getRegistry().getValueFactory().createValue(LiteKeys.JOB_NAME, this.jobName, "").asImmutable();
-	}
-	
-	public ImmutableValue<Integer> level() {
-		return Sponge.getRegistry().getValueFactory().createValue(LiteKeys.LEVEL, this.level, 0).asImmutable();
-	}
-	
-	public ImmutableValue<Integer> exp() {
-		return Sponge.getRegistry().getValueFactory().createValue(LiteKeys.EXP, this.exp, 0).asImmutable();
-	}
-	
-	@Override
-	protected void registerGetters() {
-		registerFieldGetter(LiteKeys.LEVEL, () -> this.level);
-		registerKeyValue(LiteKeys.LEVEL, this::level);
-		
-		registerFieldGetter(LiteKeys.EXP, () -> this.exp);
-		registerKeyValue(LiteKeys.EXP, this::exp);
-		
-		registerFieldGetter(LiteKeys.JOB_NAME, () -> this.jobName);
-		registerKeyValue(LiteKeys.JOB_NAME, this::jobName);
-	}
+
+    public ImmutableValue<String> jobName() {
+        return Sponge.getRegistry().getValueFactory().createValue(LiteKeys.JOB_NAME, this.jobName, "").asImmutable();
+    }
+
+    public ImmutableValue<Integer> level() {
+        return Sponge.getRegistry().getValueFactory().createValue(LiteKeys.LEVEL, this.level, 0).asImmutable();
+    }
+
+    public ImmutableValue<Integer> exp() {
+        return Sponge.getRegistry().getValueFactory().createValue(LiteKeys.EXP, this.exp, 0).asImmutable();
+    }
+
+    @Override
+    protected void registerGetters() {
+        registerFieldGetter(LiteKeys.LEVEL, () -> this.level);
+        registerKeyValue(LiteKeys.LEVEL, this::level);
+
+        registerFieldGetter(LiteKeys.EXP, () -> this.exp);
+        registerKeyValue(LiteKeys.EXP, this::exp);
+
+        registerFieldGetter(LiteKeys.JOB_NAME, () -> this.jobName);
+        registerKeyValue(LiteKeys.JOB_NAME, this::jobName);
+    }
 
     @Override
     public <E> Optional<ImmutableJobData> with(Key<? extends BaseValue<E>> key, E value) {
-		return Optional.empty();
+        return Optional.empty();
     }
 
     @Override
     public int compareTo(ImmutableJobData o) {
-    	return ComparisonChain.start()
-    			.compare(o.jobName, this.jobName)
-    			.compare(o.level, this.level)
-    			.compare(o.exp, this.exp)
-    			.result();
+        return ComparisonChain.start()
+                .compare(o.jobName, this.jobName)
+                .compare(o.level, this.level)
+                .compare(o.exp, this.exp)
+                .result();
     }
 
     @Override
     public int getContentVersion() {
         return 1;
     }
-    
+
     @Override
     public DataContainer toContainer() {
-    	return super.toContainer()
-			.set(LiteKeys.JOB_NAME, this.jobName)
-			.set(LiteKeys.LEVEL, this.level)
-			.set(LiteKeys.EXP, this.exp);
+        return super.toContainer()
+                .set(LiteKeys.JOB_NAME, this.jobName)
+                .set(LiteKeys.LEVEL, this.level)
+                .set(LiteKeys.EXP, this.exp);
     }
-    
+
     @Override
     public JobData asMutable() {
-        return new JobData(jobName,level,exp);
+        return new JobData(jobName, level, exp);
     }
 
 }

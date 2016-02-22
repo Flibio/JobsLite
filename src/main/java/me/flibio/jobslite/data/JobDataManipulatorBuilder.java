@@ -32,46 +32,46 @@ import org.spongepowered.api.util.persistence.InvalidDataException;
 import java.util.Optional;
 
 public class JobDataManipulatorBuilder implements DataManipulatorBuilder<JobData, ImmutableJobData> {
-    
-	private int level;
-	private int exp;
-	private String jobName;
+
+    private int level;
+    private int exp;
+    private String jobName;
 
     @Override
     public Optional<JobData> build(DataView container) throws InvalidDataException {
-		if(container.contains(LiteKeys.JOB_NAME.getQuery(), LiteKeys.LEVEL.getQuery(), LiteKeys.EXP.getQuery())) {
-			final String jobName = container.getString(LiteKeys.JOB_NAME.getQuery()).get();
-			final int level = container.getInt(LiteKeys.LEVEL.getQuery()).get();
-			final int exp = container.getInt(LiteKeys.EXP.getQuery()).get();
-			return Optional.of(new JobData(jobName,level,exp));
-		}
-		return Optional.empty();
+        if (container.contains(LiteKeys.JOB_NAME.getQuery(), LiteKeys.LEVEL.getQuery(), LiteKeys.EXP.getQuery())) {
+            final String jobName = container.getString(LiteKeys.JOB_NAME.getQuery()).get();
+            final int level = container.getInt(LiteKeys.LEVEL.getQuery()).get();
+            final int exp = container.getInt(LiteKeys.EXP.getQuery()).get();
+            return Optional.of(new JobData(jobName, level, exp));
+        }
+        return Optional.empty();
     }
-    
+
     public JobDataManipulatorBuilder setJobInfo(String jobName, int level, int exp) {
-		this.jobName = jobName;
-		this.level = level;
-		this.exp = exp;
-		return this;
+        this.jobName = jobName;
+        this.level = level;
+        this.exp = exp;
+        return this;
     }
 
     @Override
     public JobData create() {
-    	if(level<0) {
-    		level = 0;
-    	}
-    	if(exp<0) {
-    		exp = 0;
-    	}
-    	if(jobName==null) {
-    		jobName = "";
-    	}
-        return new JobData(jobName,level,exp);
+        if (level < 0) {
+            level = 0;
+        }
+        if (exp < 0) {
+            exp = 0;
+        }
+        if (jobName == null) {
+            jobName = "";
+        }
+        return new JobData(jobName, level, exp);
     }
 
     @Override
     public Optional<JobData> createFrom(DataHolder dataHolder) {
-    	return Optional.of(dataHolder.get(JobData.class).orElse(new JobData("",0,0)));
+        return Optional.of(dataHolder.get(JobData.class).orElse(new JobData("", 0, 0)));
     }
 
 }

@@ -66,167 +66,169 @@ import com.google.inject.Inject;
 
 import java.util.HashMap;
 
-@Updatifier(repoName = "JobsLite", repoOwner = "Flibio", version = "v"+VERSION)
+@Updatifier(repoName = "JobsLite", repoOwner = "Flibio", version = "v" + VERSION)
 @Plugin(id = ID, name = NAME, version = VERSION, dependencies = DEPENDENCIES)
 public class JobsLite {
-	public static JobsLite access;
-	
-	@Inject
-	public Logger logger;
-	
-	@Inject
-	public Game game;
-	
-	@Inject
-    private SpongeStatsLite statsLite;
-	
-	public String version = JobsLite.class.getAnnotation(Plugin.class).version();
-	
-	public FileManager fileManager;
-	public JobManager jobManager;
-	public PlayerManager playerManager;
-	public EconomyService economyService;
-	
-	private static HashMap<String, String> configOptions = new HashMap<String, String>();
-	
-	private boolean foundProvider = false;
-	private boolean late = false;
-	
-	@Listener
-	public void onPreInitialize(GamePreInitializationEvent event) {
-		access = this;
-		//Register the custom data
-		Sponge.getDataManager().register(JobData.class, ImmutableJobData.class, new JobDataManipulatorBuilder());
-		//Initialze basic plugin managers needed for further initialization
-		fileManager = new FileManager(logger);
-		jobManager = new JobManager();
-		playerManager = new PlayerManager(logger);
-	}
-	
-	@Listener
-	public void onServerInitialize(GameInitializationEvent event) {
-		logger.info("JobsLite by Flibio initializing!");
-		this.statsLite.start();
-		fileManager.loadFile(FileType.CONFIGURATION);
-		fileManager.loadFile(FileType.PLAYER_DATA);
-		fileManager.loadFile(FileType.JOBS_DATA);	
-		
-		initializeFiles();
-		loadConfigurationOptions();
-	}
-	
-	@Listener
-	public void onChangeServiceProvider(ChangeServiceProviderEvent event) {
-		if(event.getService().equals(EconomyService.class)&&!late) {
-			Object raw = event.getNewProviderRegistration().getProvider();
-			if(raw instanceof EconomyService) {
-				foundProvider = true;
-				economyService = (EconomyService) raw;
-			} else {
-				foundProvider = false;
-			}
-		}
-	}
-	
-	@Listener
-	public void onPostInitialization(GamePostInitializationEvent event) {
-		if(foundProvider) {
-			//Register events and commands
-			registerEvents();
-			registerCommands();
-			//Schedule async task to auto-save files
-			game.getScheduler().createTaskBuilder().execute(new Runnable() {
-				public void run() {
-					//Save all of the files
-					fileManager.saveAllFiles();
-				}
-			}).async().delayTicks(10000).intervalTicks(5000).submit(this);
-		}
-	}
-	
-	@Listener
-	public void onServerStart(GameStartedServerEvent event) {
-		late = true;
-		if(!foundProvider) {
-			logger.error("JobsLite failed to load an economy plugin!");
-			logger.error("It will no longer function!");
-			return;
-		}
-	}
-	
-	@Listener
-	public void serverStop(GameStoppingServerEvent event) {
-		if(!foundProvider) return;
-		fileManager.saveAllFiles();
-	}
-	
-	@Listener
-	public void onPlayerDisconnect(ClientConnectionEvent.Disconnect event) {
-		if(!foundProvider) return;
-		fileManager.saveAllFiles();
-	}
-	
-	private void registerEvents() {
-		game.getEventManager().registerListeners(this, new PlayerChatListener());
-		game.getEventManager().registerListeners(this, new PlayerJoinListener());
-		game.getEventManager().registerListeners(this, new PlayerBlockBreakListener());
-		game.getEventManager().registerListeners(this, new PlayerPlaceBlockListener());
-	}
-	
-	private void initializeFiles() {
-		fileManager.generateFolder("config/JobsLite");
-		fileManager.generateFile("config/JobsLite/config.conf");
-		fileManager.generateFile("config/JobsLite/playerData.conf");
-		fileManager.generateFile("config/JobsLite/jobsData.conf");
-		
-		fileManager.loadFile(FileType.CONFIGURATION);
-		
-		fileManager.testDefault("Display-Level", "enabled");
-		fileManager.testDefault("Chat-Prefixes", "enabled");
-	}
-	
-	private void loadConfigurationOptions() {
-		configOptions.put("displayLevel", fileManager.getConfigValue("Display-Level"));
-		configOptions.put("chatPrefixes", fileManager.getConfigValue("Chat-Prefixes"));
-	}
-	
-	private void registerCommands() {
-		CommandSpec createCommand = CommandSpec.builder()
-		    .description(Text.of("Create a new job"))
-		    .permission("jobs.admin.create")
-		    .executor(new CreateCommand())
-		    .build();
-		CommandSpec joinCommand = CommandSpec.builder()
-		    .description(Text.of("Join a job"))
-		    .permission("jobs.join")
-		    .executor(new JoinCommand())
-		    .build();
-		CommandSpec setCommand = CommandSpec.builder()
-			    .description(Text.of("Set a player's job"))
-			    .permission("jobs.set")
-			     .arguments(GenericArguments.string(Text.of("target")))
-			    .executor(new SetCommand())
-			    .build();
-		CommandSpec jobsCommand = CommandSpec.builder()
-		    .description(Text.of("Jobs commands"))
-		    .child(createCommand, "create")
-		    .child(joinCommand, "join")
-		    .child(setCommand, "set")
-		    .build();
-		game.getCommandManager().register(this, jobsCommand, "jobs");
-	}
-	
-	public static boolean optionEnabled(String optionName) {
-		if(configOptions.get(optionName).equalsIgnoreCase("enabled")) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	public static String getOption(String optionName) {
-		if(!configOptions.containsKey(optionName)) return "";
-		return configOptions.get(optionName);
-	}
+
+    public static JobsLite access;
+
+    @Inject public Logger logger;
+
+    @Inject public Game game;
+
+    @Inject private SpongeStatsLite statsLite;
+
+    public String version = JobsLite.class.getAnnotation(Plugin.class).version();
+
+    public FileManager fileManager;
+    public JobManager jobManager;
+    public PlayerManager playerManager;
+    public EconomyService economyService;
+
+    private static HashMap<String, String> configOptions = new HashMap<String, String>();
+
+    private boolean foundProvider = false;
+    private boolean late = false;
+
+    @Listener
+    public void onPreInitialize(GamePreInitializationEvent event) {
+        access = this;
+        // Register the custom data
+        Sponge.getDataManager().register(JobData.class, ImmutableJobData.class, new JobDataManipulatorBuilder());
+        // Initialze basic plugin managers needed for further initialization
+        fileManager = new FileManager(logger);
+        jobManager = new JobManager();
+        playerManager = new PlayerManager(logger);
+    }
+
+    @Listener
+    public void onServerInitialize(GameInitializationEvent event) {
+        logger.info("JobsLite by Flibio initializing!");
+        this.statsLite.start();
+        fileManager.loadFile(FileType.CONFIGURATION);
+        fileManager.loadFile(FileType.PLAYER_DATA);
+        fileManager.loadFile(FileType.JOBS_DATA);
+
+        initializeFiles();
+        loadConfigurationOptions();
+    }
+
+    @Listener
+    public void onChangeServiceProvider(ChangeServiceProviderEvent event) {
+        if (event.getService().equals(EconomyService.class) && !late) {
+            Object raw = event.getNewProviderRegistration().getProvider();
+            if (raw instanceof EconomyService) {
+                foundProvider = true;
+                economyService = (EconomyService) raw;
+            } else {
+                foundProvider = false;
+            }
+        }
+    }
+
+    @Listener
+    public void onPostInitialization(GamePostInitializationEvent event) {
+        if (foundProvider) {
+            // Register events and commands
+            registerEvents();
+            registerCommands();
+            // Schedule async task to auto-save files
+            game.getScheduler().createTaskBuilder().execute(new Runnable() {
+
+                public void run() {
+                    // Save all of the files
+                    fileManager.saveAllFiles();
+                }
+            }).async().delayTicks(10000).intervalTicks(5000).submit(this);
+        }
+    }
+
+    @Listener
+    public void onServerStart(GameStartedServerEvent event) {
+        late = true;
+        if (!foundProvider) {
+            logger.error("JobsLite failed to load an economy plugin!");
+            logger.error("It will no longer function!");
+            return;
+        }
+    }
+
+    @Listener
+    public void serverStop(GameStoppingServerEvent event) {
+        if (!foundProvider)
+            return;
+        fileManager.saveAllFiles();
+    }
+
+    @Listener
+    public void onPlayerDisconnect(ClientConnectionEvent.Disconnect event) {
+        if (!foundProvider)
+            return;
+        fileManager.saveAllFiles();
+    }
+
+    private void registerEvents() {
+        game.getEventManager().registerListeners(this, new PlayerChatListener());
+        game.getEventManager().registerListeners(this, new PlayerJoinListener());
+        game.getEventManager().registerListeners(this, new PlayerBlockBreakListener());
+        game.getEventManager().registerListeners(this, new PlayerPlaceBlockListener());
+    }
+
+    private void initializeFiles() {
+        fileManager.generateFolder("config/JobsLite");
+        fileManager.generateFile("config/JobsLite/config.conf");
+        fileManager.generateFile("config/JobsLite/playerData.conf");
+        fileManager.generateFile("config/JobsLite/jobsData.conf");
+
+        fileManager.loadFile(FileType.CONFIGURATION);
+
+        fileManager.testDefault("Display-Level", "enabled");
+        fileManager.testDefault("Chat-Prefixes", "enabled");
+    }
+
+    private void loadConfigurationOptions() {
+        configOptions.put("displayLevel", fileManager.getConfigValue("Display-Level"));
+        configOptions.put("chatPrefixes", fileManager.getConfigValue("Chat-Prefixes"));
+    }
+
+    private void registerCommands() {
+        CommandSpec createCommand = CommandSpec.builder()
+                .description(Text.of("Create a new job"))
+                .permission("jobs.admin.create")
+                .executor(new CreateCommand())
+                .build();
+        CommandSpec joinCommand = CommandSpec.builder()
+                .description(Text.of("Join a job"))
+                .permission("jobs.join")
+                .executor(new JoinCommand())
+                .build();
+        CommandSpec setCommand = CommandSpec.builder()
+                .description(Text.of("Set a player's job"))
+                .permission("jobs.set")
+                .arguments(GenericArguments.string(Text.of("target")))
+                .executor(new SetCommand())
+                .build();
+        CommandSpec jobsCommand = CommandSpec.builder()
+                .description(Text.of("Jobs commands"))
+                .child(createCommand, "create")
+                .child(joinCommand, "join")
+                .child(setCommand, "set")
+                .build();
+        game.getCommandManager().register(this, jobsCommand, "jobs");
+    }
+
+    public static boolean optionEnabled(String optionName) {
+        if (configOptions.get(optionName).equalsIgnoreCase("enabled")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static String getOption(String optionName) {
+        if (!configOptions.containsKey(optionName))
+            return "";
+        return configOptions.get(optionName);
+    }
 
 }
