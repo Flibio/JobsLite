@@ -38,8 +38,6 @@ import me.flibio.jobslite.listeners.PlayerBlockBreakListener;
 import me.flibio.jobslite.listeners.PlayerChatListener;
 import me.flibio.jobslite.listeners.PlayerJoinListener;
 import me.flibio.jobslite.listeners.PlayerPlaceBlockListener;
-import me.flibio.jobslite.utils.FileManager;
-import me.flibio.jobslite.utils.FileManager.FileType;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.updatifier.Updatifier;
@@ -55,8 +53,6 @@ import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
-import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
-import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.economy.EconomyService;
@@ -64,7 +60,10 @@ import org.spongepowered.api.text.Text;
 
 import com.google.inject.Inject;
 
+import io.github.flibio.utils.file.FileManager;
+
 import java.util.HashMap;
+import java.util.Optional;
 
 @Updatifier(repoName = "JobsLite", repoOwner = "Flibio", version = "v" + VERSION)
 @Plugin(id = ID, name = NAME, version = VERSION, dependencies = DEPENDENCIES)
@@ -96,7 +95,7 @@ public class JobsLite {
         // Register the custom data
         Sponge.getDataManager().register(JobData.class, ImmutableJobData.class, new JobDataManipulatorBuilder());
         // Initialze basic plugin managers needed for further initialization
-        fileManager = new FileManager(logger);
+        fileManager = FileManager.createInstance(this).get();
         jobManager = new JobManager();
         playerManager = new PlayerManager(logger);
     }
@@ -105,10 +104,6 @@ public class JobsLite {
     public void onServerInitialize(GameInitializationEvent event) {
         logger.info("JobsLite by Flibio initializing!");
         this.statsLite.start();
-        fileManager.loadFile(FileType.CONFIGURATION);
-        fileManager.loadFile(FileType.PLAYER_DATA);
-        fileManager.loadFile(FileType.JOBS_DATA);
-
         initializeFiles();
         loadConfigurationOptions();
     }
@@ -132,14 +127,6 @@ public class JobsLite {
             // Register events and commands
             registerEvents();
             registerCommands();
-            // Schedule async task to auto-save files
-            game.getScheduler().createTaskBuilder().execute(new Runnable() {
-
-                public void run() {
-                    // Save all of the files
-                    fileManager.saveAllFiles();
-                }
-            }).async().delayTicks(10000).intervalTicks(5000).submit(this);
         }
     }
 
@@ -153,20 +140,6 @@ public class JobsLite {
         }
     }
 
-    @Listener
-    public void serverStop(GameStoppingServerEvent event) {
-        if (!foundProvider)
-            return;
-        fileManager.saveAllFiles();
-    }
-
-    @Listener
-    public void onPlayerDisconnect(ClientConnectionEvent.Disconnect event) {
-        if (!foundProvider)
-            return;
-        fileManager.saveAllFiles();
-    }
-
     private void registerEvents() {
         game.getEventManager().registerListeners(this, new PlayerChatListener());
         game.getEventManager().registerListeners(this, new PlayerJoinListener());
@@ -175,20 +148,25 @@ public class JobsLite {
     }
 
     private void initializeFiles() {
-        fileManager.generateFolder("config/JobsLite");
-        fileManager.generateFile("config/JobsLite/config.conf");
-        fileManager.generateFile("config/JobsLite/playerData.conf");
-        fileManager.generateFile("config/JobsLite/jobsData.conf");
-
-        fileManager.loadFile(FileType.CONFIGURATION);
-
-        fileManager.testDefault("Display-Level", "enabled");
-        fileManager.testDefault("Chat-Prefixes", "enabled");
+        fileManager.setDefault("config.conf", "Display-Level", String.class, "enabled");
+        fileManager.setDefault("config.conf", "Chat-Prefixes", String.class, "enabled");
     }
 
     private void loadConfigurationOptions() {
-        configOptions.put("displayLevel", fileManager.getConfigValue("Display-Level"));
-        configOptions.put("chatPrefixes", fileManager.getConfigValue("Chat-Prefixes"));
+        Optional<String> lOpt = fileManager.getValue("config.conf", "Display-Level", String.class);
+        Optional<String> pOpt = fileManager.getValue("config.conf", "Chat-Prefixes", String.class);
+        if (!lOpt.isPresent()) {
+            logger.error("Error loading display level option!");
+            configOptions.put("displayLevel", "enabled");
+        } else {
+            configOptions.put("displayLevel", lOpt.get());
+        }
+        if (!pOpt.isPresent()) {
+            logger.error("Error loading chat prefix option!");
+            configOptions.put("chatPrefixes", "enabled");
+        } else {
+            configOptions.put("chatPrefixes", pOpt.get());
+        }
     }
 
     private void registerCommands() {

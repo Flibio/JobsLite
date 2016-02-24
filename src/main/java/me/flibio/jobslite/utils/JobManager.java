@@ -25,12 +25,13 @@
 package me.flibio.jobslite.utils;
 
 import me.flibio.jobslite.JobsLite;
-import me.flibio.jobslite.utils.FileManager.FileType;
 import ninja.leaping.configurate.ConfigurationNode;
 
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
+
+import io.github.flibio.utils.file.FileManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,7 +56,9 @@ public class JobManager {
      * @return Whether or not the job was found
      */
     public boolean jobExists(String name) {
-        ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if(!rOpt.isPresent()) return false;
+        ConfigurationNode root = rOpt.get();
         // Check if the job name is in the job file
         for (Object raw : root.getChildrenMap().keySet()) {
             if (raw instanceof String) {
@@ -80,7 +83,9 @@ public class JobManager {
             return "";
         } else {
             // Load and get the jobs file
-            ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+            Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+            if(!rOpt.isPresent()) return "";
+            ConfigurationNode root = rOpt.get();
             if (root.getNode(name) != null) {
                 ConfigurationNode displayNameNode = root.getNode(name).getNode("displayName");
                 if (displayNameNode != null) {
@@ -105,7 +110,9 @@ public class JobManager {
             return "";
         } else {
             // Load and get the jobs file
-            ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+            Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+            if(!rOpt.isPresent()) return "";
+            ConfigurationNode root = rOpt.get();
             if (root.getNode(job) != null) {
                 ConfigurationNode rewardNode = root.getNode(job).getNode("rewardProgressionEquation");
                 if (rewardNode != null) {
@@ -130,7 +137,9 @@ public class JobManager {
             return "";
         } else {
             // Load and get the jobs file
-            ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+            Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+            if(!rOpt.isPresent()) return "";
+            ConfigurationNode root = rOpt.get();
             if (root.getNode(job) != null) {
                 ConfigurationNode expNode = root.getNode(job).getNode("expRequiredProgressionEquation");
                 if (expNode != null) {
@@ -155,7 +164,9 @@ public class JobManager {
             return TextColors.WHITE;
         } else {
             // Load and get the jobs file
-            ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+            Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+            if(!rOpt.isPresent()) return TextColors.WHITE;
+            ConfigurationNode root = rOpt.get();
             if (root.getNode(jobName) != null) {
                 ConfigurationNode colorNode = root.getNode(jobName).getNode("color");
                 if (colorNode != null) {
@@ -192,7 +203,9 @@ public class JobManager {
             return false;
         } else {
             // Load and get the jobs file
-            ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+            Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+            if(!rOpt.isPresent()) return false;
+            ConfigurationNode root = rOpt.get();
             root.getNode(jobName).getNode("displayName").setValue(displayName);
             root.getNode(jobName).getNode("color").setValue(color.getName().toUpperCase());
             root.getNode(jobName).getNode("expRequiredProgressionEquation").setValue("100*((1.12)^((currentLevel-1)*1.88))");
@@ -218,7 +231,7 @@ public class JobManager {
                     root.getNode(jobName).getNode("places").getNode(state.toString()).getNode("exp").setValue(exp);
                 }
             }
-
+            fileManager.saveFile("jobsData.conf", root);
             return true;
         }
     }
@@ -233,7 +246,9 @@ public class JobManager {
         ArrayList<String> blocks = new ArrayList<String>();
         if (!jobExists(jobName))
             return blocks;
-        ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if(!rOpt.isPresent()) return blocks;
+        ConfigurationNode root = rOpt.get();
         ConfigurationNode breaksNode = root.getNode(jobName).getNode("breaks");
         if (breaksNode == null)
             return blocks;
@@ -255,7 +270,9 @@ public class JobManager {
         ArrayList<String> blocks = new ArrayList<String>();
         if (!jobExists(jobName))
             return blocks;
-        ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if(!rOpt.isPresent()) return blocks;
+        ConfigurationNode root = rOpt.get();
         ConfigurationNode placesNode = root.getNode(jobName).getNode("places");
         if (placesNode == null)
             return blocks;
@@ -274,7 +291,9 @@ public class JobManager {
      */
     public ArrayList<String> getJobs() {
         ArrayList<String> jobs = new ArrayList<String>();
-        ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if(!rOpt.isPresent()) return jobs;
+        ConfigurationNode root = rOpt.get();
         for (Object raw : root.getChildrenMap().keySet()) {
             if (raw instanceof String) {
                 jobs.add((String) raw);
@@ -302,7 +321,9 @@ public class JobManager {
         }
         if (!jobExists(jobName))
             return -1;
-        ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if(!rOpt.isPresent()) return -1;
+        ConfigurationNode root = rOpt.get();
         ConfigurationNode node = root.getNode(jobName).getNode(path);
         if (node == null)
             return -1;
@@ -334,7 +355,9 @@ public class JobManager {
         }
         if (!jobExists(jobName))
             return -1;
-        ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if(!rOpt.isPresent()) return -1;
+        ConfigurationNode root = rOpt.get();
         ConfigurationNode breaksNode = root.getNode(jobName).getNode(path);
         if (breaksNode == null)
             return -1;
@@ -356,7 +379,9 @@ public class JobManager {
     public int getMaxLevel(String jobName) {
         if (!jobExists(jobName))
             return -1;
-        ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if(!rOpt.isPresent()) return -1;
+        ConfigurationNode root = rOpt.get();
         ConfigurationNode maxNode = root.getNode(jobName).getNode("maxLevel");
         if (maxNode == null)
             return -1;
@@ -370,10 +395,13 @@ public class JobManager {
      * @return Boolean based on if the method was sucessful or not
      */
     public boolean deleteJob(String jobName) {
-        ConfigurationNode root = fileManager.getFile(FileType.JOBS_DATA);
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if(!rOpt.isPresent()) return false;
+        ConfigurationNode root = rOpt.get();
         if (root.getNode(jobName) == null)
             return false;
         root.getNode(jobName).setValue(null);
+        fileManager.saveFile("jobsData.confg", root);
         return true;
     }
 

@@ -27,8 +27,6 @@ package me.flibio.jobslite.listeners;
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.data.JobData;
 import me.flibio.jobslite.data.JobDataManipulatorBuilder;
-import me.flibio.jobslite.utils.FileManager;
-import me.flibio.jobslite.utils.FileManager.FileType;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.PlayerManager;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -36,7 +34,12 @@ import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.data.DataTransactionResult.Type;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
+
+import io.github.flibio.utils.file.FileManager;
+
+import java.util.Optional;
 
 public class PlayerJoinListener {
 
@@ -48,7 +51,13 @@ public class PlayerJoinListener {
     public void onPlayerJoin(ClientConnectionEvent.Join event) {
         Player player = event.getTargetEntity();
         playerManager.addPlayer(player);
-        attemptMove(player);
+        if(!playerManager.playerExists(player)) {
+            if(!attemptMove(player)) {
+                JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
+                JobData data = builder.setJobInfo("", 0, 0).create();
+                player.offer(data);
+            }
+        }
         if (!jobManager.jobExists(playerManager.getCurrentJob(player))) {
             JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
             JobData data = builder.setJobInfo("", 0, 0).create();
@@ -57,29 +66,32 @@ public class PlayerJoinListener {
         JobsLite.access.economyService.createAccount(player.getUniqueId());
     }
 
-    private void attemptMove(Player player) {
+    private boolean attemptMove(Player player) {
         String uuid = player.getUniqueId().toString();
-        fileManager.loadFile(FileType.PLAYER_DATA);
-        ConfigurationNode root = fileManager.getFile(FileType.PLAYER_DATA);
-        if (root != null) {
-            ConfigurationNode playerNode = root.getNode(uuid);
-            if (playerNode != null) {
-                for (Object raw : playerNode.getChildrenMap().keySet()) {
-                    if (raw instanceof String) {
-                        String jobName = (String) raw;
-                        ConfigurationNode levelNode = root.getNode(uuid).getNode(jobName).getNode("level");
-                        ConfigurationNode expNode = root.getNode(uuid).getNode(jobName).getNode("exp");
-                        if (levelNode != null && expNode != null) {
-                            int level = levelNode.getInt();
-                            int exp = expNode.getInt();
-                            JobDataManipulatorBuilder builder =
-                                    (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
-                            JobData data = builder.setJobInfo(jobName, level, exp).create();
-                            player.offer(data);
+        Optional<ConfigurationNode> fOpt = fileManager.getFile("playerData.conf");
+        if(fOpt.isPresent()) {
+            ConfigurationNode root = fOpt.get();
+            if (root != null) {
+                ConfigurationNode playerNode = root.getNode(uuid);
+                if (playerNode != null) {
+                    for (Object raw : playerNode.getChildrenMap().keySet()) {
+                        if (raw instanceof String) {
+                            String jobName = (String) raw;
+                            ConfigurationNode levelNode = root.getNode(uuid).getNode(jobName).getNode("level");
+                            ConfigurationNode expNode = root.getNode(uuid).getNode(jobName).getNode("exp");
+                            if (levelNode != null && expNode != null) {
+                                int level = levelNode.getInt();
+                                int exp = expNode.getInt();
+                                JobDataManipulatorBuilder builder =
+                                        (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
+                                JobData data = builder.setJobInfo(jobName, level, exp).create();
+                                return player.offer(data).getType().equals(Type.SUCCESS);
+                            }
                         }
                     }
                 }
             }
         }
+        return false;
     }
 }
