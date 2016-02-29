@@ -39,6 +39,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 import java.math.BigDecimal;
@@ -49,11 +50,7 @@ public class PlayerBlockBreakListener {
     private UniqueAccount account;
 
     @Listener
-    public void onBlockBreak(ChangeBlockEvent.Break event) {
-        Optional<Player> playerOptional = event.getCause().first(Player.class);
-        if (!playerOptional.isPresent())
-            return;
-        Player player = playerOptional.get();
+    public void onBlockBreak(ChangeBlockEvent.Break event, @First Player player) {
         // Load managers
         PlayerManager playerManager = JobsLite.access.playerManager;
         JobManager jobManager = JobsLite.access.jobManager;

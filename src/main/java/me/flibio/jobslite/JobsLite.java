@@ -32,12 +32,16 @@ import me.flibio.jobslite.commands.CreateCommand;
 import me.flibio.jobslite.commands.JoinCommand;
 import me.flibio.jobslite.commands.SetCommand;
 import me.flibio.jobslite.data.ImmutableJobData;
+import me.flibio.jobslite.data.ImmutableSignJobData;
 import me.flibio.jobslite.data.JobData;
 import me.flibio.jobslite.data.JobDataManipulatorBuilder;
+import me.flibio.jobslite.data.SignJobData;
+import me.flibio.jobslite.data.SignJobDataManipulatorBuilder;
 import me.flibio.jobslite.listeners.PlayerBlockBreakListener;
 import me.flibio.jobslite.listeners.PlayerChatListener;
 import me.flibio.jobslite.listeners.PlayerJoinListener;
 import me.flibio.jobslite.listeners.PlayerPlaceBlockListener;
+import me.flibio.jobslite.listeners.SignListeners;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.updatifier.Updatifier;
@@ -94,6 +98,7 @@ public class JobsLite {
         access = this;
         // Register the custom data
         Sponge.getDataManager().register(JobData.class, ImmutableJobData.class, new JobDataManipulatorBuilder());
+        Sponge.getDataManager().register(SignJobData.class, ImmutableSignJobData.class, new SignJobDataManipulatorBuilder());
         // Initialze basic plugin managers needed for further initialization
         fileManager = FileManager.createInstance(this).get();
         jobManager = new JobManager();
@@ -145,6 +150,7 @@ public class JobsLite {
         game.getEventManager().registerListeners(this, new PlayerJoinListener());
         game.getEventManager().registerListeners(this, new PlayerBlockBreakListener());
         game.getEventManager().registerListeners(this, new PlayerPlaceBlockListener());
+        game.getEventManager().registerListeners(this, new SignListeners());
     }
 
     private void initializeFiles() {

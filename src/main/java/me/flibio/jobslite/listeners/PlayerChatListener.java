@@ -31,9 +31,8 @@ import me.flibio.jobslite.utils.TextUtils;
 
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.message.MessageChannelEvent;
-
-import java.util.Optional;
 
 public class PlayerChatListener {
 
@@ -41,11 +40,7 @@ public class PlayerChatListener {
     private PlayerManager playerManager = JobsLite.access.playerManager;
 
     @Listener
-    public void onPlayerChat(MessageChannelEvent.Chat event) {
-        Optional<Player> playerOptional = event.getCause().first(Player.class);
-        if (!playerOptional.isPresent())
-            return;
-        Player player = playerOptional.get();
+    public void onPlayerChat(MessageChannelEvent.Chat event, @First Player player) {
         if (JobsLite.optionEnabled("chatPrefixes")) {
             if (playerManager.playerExists(player)) {
                 String currentJob = playerManager.getCurrentJob(player).trim();
