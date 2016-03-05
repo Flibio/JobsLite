@@ -29,6 +29,7 @@ import static me.flibio.jobslite.PluginInfo.ID;
 import static me.flibio.jobslite.PluginInfo.NAME;
 import static me.flibio.jobslite.PluginInfo.VERSION;
 import me.flibio.jobslite.commands.CreateCommand;
+import me.flibio.jobslite.commands.DeleteCommand;
 import me.flibio.jobslite.commands.JoinCommand;
 import me.flibio.jobslite.commands.SetCommand;
 import me.flibio.jobslite.data.ImmutableJobData;
@@ -192,11 +193,17 @@ public class JobsLite {
                 .arguments(GenericArguments.string(Text.of("target")))
                 .executor(new SetCommand())
                 .build();
+        CommandSpec deleteCommand = CommandSpec.builder()
+                .description(Text.of("Deletes a job"))
+                .permission("jobs.delete")
+                .executor(new DeleteCommand())
+                .build();
         CommandSpec jobsCommand = CommandSpec.builder()
                 .description(Text.of("Jobs commands"))
                 .child(createCommand, "create")
                 .child(joinCommand, "join")
                 .child(setCommand, "set")
+                .child(deleteCommand, "delete")
                 .build();
         game.getCommandManager().register(this, jobsCommand, "jobs");
     }

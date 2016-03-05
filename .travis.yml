@@ -1,0 +1,13 @@
+language: java
+jdk:
+- oraclejdk8
+install:
+- gradle build
+script:
+- chmod +x ./gradlew
+after_success:
+- 'if [ ${TRAVIS_PULL_REQUEST} != "false" ]; then exit; fi'
+- 'if [ ${TRAVIS_BRANCH} != "master" ]; then exit; fi'
+- 'if [ -z ${TRAVIS_TAG} ]; then exit; fi'
+- 'wc -c ${HOME}/build/${TRAVIS_REPO_SLUG}/build/libs/JobsLite-${TRAVIS_TAG}.jar'
+- 'curl -v -X POST --data-binary @${HOME}/build/${TRAVIS_REPO_SLUG}/build/libs/JobsLite-${TRAVIS_TAG}.jar --header "Content-Type:application/octet-stream" -u Flibio:${GITHUB_OAUTH} "https://uploads.github.com/repos/Flibio/JobsLite/releases/${TRAVIS_TAG}/assets?name=JobsLite-${TRAVIS_TAG}.jar"'
