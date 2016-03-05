@@ -1,6 +1,5 @@
 <img src="https://forums-cdn.spongepowered.org/uploads/default/original/2X/2/2b51826ef2784969dee09505b3a2fcddca0ed403.png" width="500" height="128">
 
-[![License](https://img.shields.io/github/license/Flibio/JobsLite.svg?style=flat-square)]()
 [![Downloads](https://img.shields.io/github/downloads/flibio/Jobslite/total.svg?style=flat-square)](https://github.com/Flibio/JobsLite/releases)
 [![Issues](https://img.shields.io/github/issues/Flibio/JobsLite.svg?style=flat-square)](http://www.github.com/Flibio/JobsLite/issues/)
 [![Gitter](https://img.shields.io/badge/chat-on_gitter-3F51B5.svg?style=flat-square)](https://gitter.im/Flibio/JobsLite)
