@@ -34,17 +34,23 @@ import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.Transaction;
+import org.spongepowered.api.data.manipulator.mutable.item.EnchantmentData;
+import org.spongepowered.api.data.meta.ItemEnchantment;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.item.Enchantments;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
+//TODO - Add job option to only allow world-generated blocks
 public class PlayerBlockBreakListener {
 
     private UniqueAccount account;
@@ -65,11 +71,29 @@ public class PlayerBlockBreakListener {
                     if (!uOpt.isPresent()) {
                         return;
                     }
+                    if (jobManager.onlySilkTouch(job)) {
+                        Optional<ItemStack> iOpt = player.getItemInHand();
+                        if (iOpt.isPresent()) {
+                            ItemStack item = iOpt.get();
+                            EnchantmentData data = item.getOrCreate(EnchantmentData.class).get();
+                            for (ItemEnchantment enchantment : data.enchantments()) {
+                                if (enchantment.getEnchantment().equals(Enchantments.SILK_TOUCH)) {
+                                    return;
+                                }
+                            }
+                        }
+                    }
                     account = uOpt.get();
                     for (String block : jobManager.getBreakBlocks(job)) {
                         for (Transaction<BlockSnapshot> transaction : event.getTransactions()) {
                             if (transaction.isValid()) {
                                 BlockState blockTransactionState = transaction.getOriginal().getState();
+                                if (jobManager.onlyWorldGen(job)) {
+                                    Optional<UUID> uuOpt = transaction.getOriginal().getCreator();
+                                    if (uuOpt.isPresent()) {
+                                        continue;
+                                    }
+                                }
                                 if (block.equalsIgnoreCase(blockTransactionState.toString())
                                         || block.equalsIgnoreCase(blockTransactionState.getType().getName())) {
                                     // Block is a match!
@@ -77,31 +101,31 @@ public class PlayerBlockBreakListener {
                                     // Max Level
                                     int maxLevel = jobManager.getMaxLevel(job);
                                     if (maxLevel < 0)
-                                        return;
+                                        continue;
                                     // Current Level
                                     int playerLevel = playerManager.getCurrentLevel(player, job);
                                     if (playerLevel < 0)
-                                        return;
+                                        continue;
                                     // Current Exp
                                     int playerExp = playerManager.getCurrentExp(player, job);
                                     if (playerExp < 0)
-                                        return;
+                                        continue;
                                     // Base exp reward
                                     int baseExpReward = jobManager.getExpReward(job, block, ActionType.BREAK);
                                     if (baseExpReward < 0)
-                                        return;
+                                        continue;
                                     // Base currency reward
                                     int baseCurrencyReward = jobManager.getCurrencyReward(job, block, ActionType.BREAK);
                                     if (baseCurrencyReward < 0)
-                                        return;
+                                        continue;
                                     // Get the equations
                                     String rewardEquation = jobManager.getRewardEquation(job);
                                     if (rewardEquation.isEmpty())
-                                        return;
+                                        continue;
                                     String rewardCurrencyEquation = rewardEquation;
                                     String expEquation = jobManager.getExpRequiredEquation(job);
                                     if (expEquation.isEmpty())
-                                        return;
+                                        continue;
                                     // Replace the variables in the equation
                                     rewardEquation =
                                             rewardEquation.replaceAll("startingPoint", baseExpReward + "").replaceAll("currentLevel",
@@ -127,7 +151,7 @@ public class PlayerBlockBreakListener {
                                         if (playerLevel == maxLevel) {
                                             // Already at max level
                                             addFunds(currencyReward);
-                                            return;
+                                            continue;
                                         } else {
                                             if (playerLevel + 1 == maxLevel) {
                                                 playerManager.setLevel(player, job, playerLevel + 1);
@@ -159,7 +183,7 @@ public class PlayerBlockBreakListener {
                                         // If the player is at the max level
                                         // don't give them exp
                                         if (maxLevel == playerLevel)
-                                            return;
+                                            continue;
                                         playerManager.setExp(player, job, playerExp + reward);
                                     }
                                 }

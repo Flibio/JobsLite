@@ -198,7 +198,7 @@ public class JobManager {
      * @return Boolean based on whether the method was successful or not
      */
     public boolean newJob(String jobName, String displayName, HashMap<BlockState, HashMap<String, Integer>> blockBreaks,
-            HashMap<BlockState, HashMap<String, Integer>> blockPlaces, int maxLevel, TextColor color) {
+            HashMap<BlockState, HashMap<String, Integer>> blockPlaces, int maxLevel, TextColor color, boolean silkTouch, boolean worldGen) {
         if (jobExists(jobName)) {
             return false;
         } else {
@@ -211,6 +211,8 @@ public class JobManager {
             root.getNode(jobName).getNode("expRequiredProgressionEquation").setValue("100*((1.12)^((currentLevel-1)*1.88))");
             root.getNode(jobName).getNode("rewardProgressionEquation").setValue("startingPoint*((1.048)^(currentLevel-1))");
             root.getNode(jobName).getNode("maxLevel").setValue(maxLevel);
+            root.getNode(jobName).getNode("silkTouch").setValue(silkTouch);
+            root.getNode(jobName).getNode("worldGen").setValue(worldGen);
             // Enter break data
             for (BlockState state : blockBreaks.keySet()) {
                 HashMap<String, Integer> data = blockBreaks.get(state);
@@ -386,6 +388,44 @@ public class JobManager {
         if (maxNode == null)
             return -1;
         return maxNode.getInt();
+    }
+    
+    /**
+     * Gets if the job disallows silk touch tools.
+     * @param jobName
+     *  The name of the job.
+     * @return
+     *  If the job disallows silk touch tools.
+     */
+    public boolean onlySilkTouch(String jobName) {
+        if (!jobExists(jobName))
+            return false;
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if(!rOpt.isPresent()) return false;
+        ConfigurationNode root = rOpt.get();
+        ConfigurationNode silkTouch = root.getNode(jobName).getNode("silkTouch");
+        if (silkTouch == null)
+            return false;
+        return silkTouch.getBoolean();
+    }
+    
+    /**
+     * Gets if the job only allows world generated blocks.
+     * @param jobName
+     *  The name of the job.
+     * @return
+     *  If the job disallows silk touch tools.
+     */
+    public boolean onlyWorldGen(String jobName) {
+        if (!jobExists(jobName))
+            return false;
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if(!rOpt.isPresent()) return false;
+        ConfigurationNode root = rOpt.get();
+        ConfigurationNode worldGen = root.getNode(jobName).getNode("worldGen");
+        if (worldGen == null)
+            return false;
+        return worldGen.getBoolean();
     }
 
     /**

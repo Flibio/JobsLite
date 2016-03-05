@@ -37,7 +37,7 @@ dependencies {
     compile 'org.spongepowered:spongeapi:3.1.0-SNAPSHOT'
     shade 'com.github.flibio:updatifier:v1.3.0:api'
     shade 'net.minecrell.mcstats:statslite-sponge:0.2.1'
-    shade 'com.github.flibiostudio:utils:1.0.0'
+    shade 'com.github.flibiostudio:utils:1.0.2'
 }
 
 license {
