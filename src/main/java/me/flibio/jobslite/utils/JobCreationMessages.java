@@ -30,7 +30,7 @@ import org.spongepowered.api.text.format.TextColors;
 
 public class JobCreationMessages {
 
-    private static Text PREFIX = Text.builder("JobsLite » ").color(TextColors.AQUA).build();
+    private static Text PREFIX = Text.builder("JobsLite: ").color(TextColors.AQUA).build();
 
     public static Text cancelNotification() {
         Text text = Text.builder().append(PREFIX).build();

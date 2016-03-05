@@ -130,12 +130,20 @@ public class SignListeners {
     }
 
     @Listener
-    public void onBlockBreak(ChangeBlockEvent.Break event, @First Player player) {
+    public void onBlockBreak(ChangeBlockEvent.Break event) {
+        Optional<Player> playerOptional = event.getCause().first(Player.class);
         for (Transaction<BlockSnapshot> transaction : event.getTransactions()) {
             if (transaction.isValid()) {
-                if (transaction.getOriginal().get(LiteKeys.JOB_NAME).isPresent() && !player.hasPermission("jobs.admin.sign.delete")) {
-                    player.sendMessage(Text.of(TextColors.RED, "You may not remove this sign!"));
-                    event.setCancelled(true);
+                if (transaction.getOriginal().get(LiteKeys.JOB_NAME).isPresent()) {
+                    if (!playerOptional.isPresent()) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                    Player player = playerOptional.get();
+                    if (!player.hasPermission("jobs.admin.sign.delete")) {
+                        player.sendMessage(Text.of(TextColors.RED, "You may not remove this sign!"));
+                        event.setCancelled(true);
+                    }
                 }
             }
         }
