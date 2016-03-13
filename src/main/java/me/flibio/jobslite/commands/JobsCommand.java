@@ -24,33 +24,31 @@
  */
 package me.flibio.jobslite.commands;
 
-import me.flibio.jobslite.objects.CreatingJob;
-
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 
+import io.github.flibio.utils.commands.AsyncCommand;
 import io.github.flibio.utils.commands.BaseCommandExecutor;
 import io.github.flibio.utils.commands.Command;
-import io.github.flibio.utils.commands.ParentCommand;
 
-@ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"create"})
-public class CreateCommand extends BaseCommandExecutor<Player> {
+@AsyncCommand
+@Command(aliases = {"jobs"})
+public class JobsCommand extends BaseCommandExecutor<Player> {
 
     @Override
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(Text.of("Create a new job"))
-                .permission("jobs.admin.create");
+                .description(Text.of("The base jobs command."));
     }
 
     @Override
     public void run(Player src, CommandContext args) {
-        new CreatingJob(src);
+        src.sendMessage(Text.of(TextColors.RED, "Not enough arguments! Usage: /jobs create|delete|join|set"));
     }
 
 }

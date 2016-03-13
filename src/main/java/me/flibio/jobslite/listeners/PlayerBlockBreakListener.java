@@ -41,6 +41,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.item.Enchantments;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -67,7 +68,7 @@ public class PlayerBlockBreakListener {
                     String displayName = jobManager.getDisplayName(job);
                     if (displayName.isEmpty())
                         return;
-                    Optional<UniqueAccount> uOpt = JobsLite.access.economyService.getAccount(player.getUniqueId());
+                    Optional<UniqueAccount> uOpt = JobsLite.access.economyService.getOrCreateAccount(player.getUniqueId());
                     if (!uOpt.isPresent()) {
                         return;
                     }
@@ -196,7 +197,7 @@ public class PlayerBlockBreakListener {
     }
 
     private void addFunds(int amount) {
-        account.deposit(JobsLite.access.economyService.getDefaultCurrency(), BigDecimal.valueOf(amount), Cause.of("JobsLite"));
+        account.deposit(JobsLite.access.economyService.getDefaultCurrency(), BigDecimal.valueOf(amount), Cause.of(NamedCause.owner(JobsLite.access)));
     }
 
 }

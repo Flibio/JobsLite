@@ -63,7 +63,7 @@ public class PlayerJoinListener {
             JobData data = builder.setJobInfo("", 0, 0).create();
             player.offer(data);
         }
-        JobsLite.access.economyService.createAccount(player.getUniqueId());
+        JobsLite.access.economyService.getOrCreateAccount(player.getUniqueId());
     }
 
     private boolean attemptMove(Player player) {

@@ -24,12 +24,13 @@
  */
 package me.flibio.jobslite;
 
-import static me.flibio.jobslite.PluginInfo.DEPENDENCIES;
+import static me.flibio.jobslite.PluginInfo.DESCRIPTION;
 import static me.flibio.jobslite.PluginInfo.ID;
 import static me.flibio.jobslite.PluginInfo.NAME;
 import static me.flibio.jobslite.PluginInfo.VERSION;
 import me.flibio.jobslite.commands.CreateCommand;
 import me.flibio.jobslite.commands.DeleteCommand;
+import me.flibio.jobslite.commands.JobsCommand;
 import me.flibio.jobslite.commands.JoinCommand;
 import me.flibio.jobslite.commands.SetCommand;
 import me.flibio.jobslite.data.ImmutableJobData;
@@ -51,8 +52,6 @@ import net.minecrell.mcstats.SpongeStatsLite;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
@@ -61,17 +60,17 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.economy.EconomyService;
-import org.spongepowered.api.text.Text;
 
 import com.google.inject.Inject;
 
+import io.github.flibio.utils.commands.CommandLoader;
 import io.github.flibio.utils.file.FileManager;
 
 import java.util.HashMap;
 import java.util.Optional;
 
 @Updatifier(repoName = "JobsLite", repoOwner = "Flibio", version = "v" + VERSION)
-@Plugin(id = ID, name = NAME, version = VERSION, dependencies = DEPENDENCIES)
+@Plugin(id = ID, name = NAME, version = VERSION, dependencies = {}, description = DESCRIPTION)
 public class JobsLite {
 
     public static JobsLite access;
@@ -177,35 +176,12 @@ public class JobsLite {
     }
 
     private void registerCommands() {
-        CommandSpec createCommand = CommandSpec.builder()
-                .description(Text.of("Create a new job"))
-                .permission("jobs.admin.create")
-                .executor(new CreateCommand())
-                .build();
-        CommandSpec joinCommand = CommandSpec.builder()
-                .description(Text.of("Join a job"))
-                .permission("jobs.join")
-                .executor(new JoinCommand())
-                .build();
-        CommandSpec setCommand = CommandSpec.builder()
-                .description(Text.of("Set a player's job"))
-                .permission("jobs.set")
-                .arguments(GenericArguments.string(Text.of("target")))
-                .executor(new SetCommand())
-                .build();
-        CommandSpec deleteCommand = CommandSpec.builder()
-                .description(Text.of("Deletes a job"))
-                .permission("jobs.delete")
-                .executor(new DeleteCommand())
-                .build();
-        CommandSpec jobsCommand = CommandSpec.builder()
-                .description(Text.of("Jobs commands"))
-                .child(createCommand, "create")
-                .child(joinCommand, "join")
-                .child(setCommand, "set")
-                .child(deleteCommand, "delete")
-                .build();
-        game.getCommandManager().register(this, jobsCommand, "jobs");
+        CommandLoader.registerCommands(this,
+                new JobsCommand(),
+                new CreateCommand(),
+                new DeleteCommand(),
+                new JoinCommand(),
+                new SetCommand());
     }
 
     public static boolean optionEnabled(String optionName) {

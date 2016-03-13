@@ -4,13 +4,14 @@ plugins {
     id 'maven'
     id 'com.github.hierynomus.license' version '0.12.1'
     id 'net.ellune.blossom' version '1.0.1'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
 }
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 group 'me.flibio'
-version '1.3.1'
+version '1.3.2'
 
 defaultTasks 'licenseFormat', 'clean', 'build'
 
@@ -28,16 +29,27 @@ repositories {
     maven { url "https://jitpack.io" }
 }
 
-configurations {
-    shade
-    compile.extendsFrom shade
+dependencies {
+    compile 'org.spongepowered:spongeapi:4.1.0-SNAPSHOT'
+    compile 'com.github.flibio:updatifier:v1.4.0:api'
+    compile 'net.minecrell.mcstats:statslite-sponge:0.2.2'
+    compile 'com.github.flibiostudio:utils:1.2.1'
 }
 
-dependencies {
-    compile 'org.spongepowered:spongeapi:3.1.0-SNAPSHOT'
-    shade 'com.github.flibio:updatifier:v1.3.0:api'
-    shade 'net.minecrell.mcstats:statslite-sponge:0.2.1'
-    shade 'com.github.flibiostudio:utils:1.0.2'
+shadowJar {
+    dependencies {
+        include dependency('net.minecrell.mcstats:statslite-sponge')
+        include dependency('com.github.flibio:updatifier')
+        include dependency('com.github.flibiostudio:utils')
+    }
+    
+    relocate 'me.flibio.updatifier', 'me.flibio.jobslite.updatifier'
+    relocate 'net.minecrell.mcstats', 'me.flibio.jobslite.mcstats'
+    relocate 'io.github.flibio.utils', 'me.flibio.jobslite.eutils'
+}
+
+artifacts {
+    archives shadowJar
 }
 
 license {
@@ -59,12 +71,6 @@ license {
 
     mapping {
         java = 'SLASHSTAR_STYLE'
-    }
-}
-
-jar {
-    configurations.shade.copyRecursive().setTransitive(false).each { artifact ->
-        from (zipTree(artifact))
     }
 }
 

@@ -28,31 +28,38 @@ import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.TextUtils;
 
-import org.spongepowered.api.command.CommandException;
-import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
+import io.github.flibio.utils.commands.AsyncCommand;
+import io.github.flibio.utils.commands.BaseCommandExecutor;
+import io.github.flibio.utils.commands.Command;
+import io.github.flibio.utils.commands.ParentCommand;
+
 import java.util.function.Consumer;
 
-public class DeleteCommand implements CommandExecutor {
+@AsyncCommand
+@ParentCommand(parentCommand = JobsCommand.class)
+@Command(aliases = {"delete", "del"})
+public class DeleteCommand extends BaseCommandExecutor<Player> {
 
     private JobManager jobManager = JobsLite.access.jobManager;
 
     @Override
-    public CommandResult execute(CommandSource source, CommandContext args)
-            throws CommandException {
+    public Builder getCommandSpecBuilder() {
+        return CommandSpec.builder()
+                .executor(this)
+                .description(Text.of("Deletes a job."))
+                .permission("jobs.delete");
+    }
 
-        if (!(source instanceof Player)) {
-            source.sendMessage(Text.builder("You must be a player to use /jobs!").color(TextColors.RED).build());
-            return CommandResult.success();
-        }
-
-        Player player = (Player) source;
+    @Override
+    public void run(Player player, CommandContext args) {
         player.sendMessage(TextUtils.instruction("select the job you would like to delete"));
         for (String job : jobManager.getJobs()) {
             if (jobManager.jobExists(job)) {
@@ -90,7 +97,5 @@ public class DeleteCommand implements CommandExecutor {
                 }
             }
         }
-
-        return CommandResult.success();
     }
 }

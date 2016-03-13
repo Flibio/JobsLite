@@ -12,6 +12,6 @@ script:
 after_success:
 - 'if [ ${TRAVIS_PULL_REQUEST} != "false" ]; then exit; fi'
 - 'if [ -z ${TRAVIS_TAG} ]; then exit; fi'
-- 'wc -c ${HOME}/build/${TRAVIS_REPO_SLUG}/build/libs/JobsLite-${TRAVIS_TAG}.jar'
+- 'wc -c ${HOME}/build/${TRAVIS_REPO_SLUG}/build/libs/JobsLite-${TRAVIS_TAG}-all.jar'
 - 'curl -v -X POST -d "{\"tag_name\": \"${TRAVIS_TAG}\",\"target_commitish\": \"master\",\"name\": \"JobsLite ${TRAVIS_TAG}\"}" --header "Content-Type:application/json" -u Flibio:${GITHUB_OAUTH} "https://api.github.com/repos/Flibio/JobsLite/releases"'
-- 'curl -v -X POST --data-binary @${HOME}/build/${TRAVIS_REPO_SLUG}/build/libs/JobsLite-${TRAVIS_TAG}.jar --header "Content-Type:application/octet-stream" -u Flibio:${GITHUB_OAUTH} "https://uploads.github.com/repos/Flibio/JobsLite/releases/$(phantomjs getid.js)/assets?name=JobsLite-${TRAVIS_TAG}.jar"'
+- 'curl -v -X POST --data-binary @${HOME}/build/${TRAVIS_REPO_SLUG}/build/libs/JobsLite-${TRAVIS_TAG}.jar --header "Content-Type:application/octet-stream" -u Flibio:${GITHUB_OAUTH} "https://uploads.github.com/repos/Flibio/JobsLite/releases/$(phantomjs getid.js)/assets?name=JobsLite-${TRAVIS_TAG}-all.jar"'

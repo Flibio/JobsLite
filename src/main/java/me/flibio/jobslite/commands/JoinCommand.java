@@ -29,32 +29,39 @@ import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
 
-import org.spongepowered.api.command.CommandException;
-import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
+import io.github.flibio.utils.commands.AsyncCommand;
+import io.github.flibio.utils.commands.BaseCommandExecutor;
+import io.github.flibio.utils.commands.Command;
+import io.github.flibio.utils.commands.ParentCommand;
+
 import java.util.function.Consumer;
 
-public class JoinCommand implements CommandExecutor {
+@AsyncCommand
+@ParentCommand(parentCommand = JobsCommand.class)
+@Command(aliases = {"join"})
+public class JoinCommand extends BaseCommandExecutor<Player> {
 
     private PlayerManager playerManager = JobsLite.access.playerManager;
     private JobManager jobManager = JobsLite.access.jobManager;
 
     @Override
-    public CommandResult execute(CommandSource source, CommandContext args)
-            throws CommandException {
+    public Builder getCommandSpecBuilder() {
+        return CommandSpec.builder()
+                .executor(this)
+                .description(Text.of("Creates a job."))
+                .permission("jobs.create");
+    }
 
-        if (!(source instanceof Player)) {
-            source.sendMessage(Text.builder("You must be a player to use /jobs!").color(TextColors.RED).build());
-            return CommandResult.success();
-        }
-
-        final Player player = (Player) source;
+    @Override
+    public void run(Player player, CommandContext args) {
         if (playerManager.playerExists(player)) {
             player.sendMessage(TextUtils.instruction("click on the job you would like to join"));
             player.sendMessage(TextUtils.error("This will reset your current level and exp for the job!"));
@@ -98,10 +105,7 @@ public class JoinCommand implements CommandExecutor {
                 }
             }
         } else {
-            source.sendMessage(Text.builder("An error has occurred!").color(TextColors.RED).build());
-            return CommandResult.success();
+            player.sendMessage(Text.builder("An error has occurred!").color(TextColors.RED).build());
         }
-
-        return CommandResult.success();
     }
 }

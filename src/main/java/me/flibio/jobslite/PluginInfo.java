@@ -32,8 +32,8 @@ public class PluginInfo {
     private PluginInfo() {
     }
 
-    public static final String ID = "JobsLite";
+    public static final String ID = "me.flibio.jobslite";
     public static final String NAME = "JobsLite";
     public static final String VERSION = "@project.version@";
-    public static final String DEPENDENCIES = "";
+    public static final String DESCRIPTION = "Sponge jobs plugin.";
 }
