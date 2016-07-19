@@ -30,12 +30,12 @@ import me.flibio.jobslite.utils.JobManager.ActionType;
 import me.flibio.jobslite.utils.NumberUtils;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
-
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.manipulator.mutable.item.EnchantmentData;
 import org.spongepowered.api.data.meta.ItemEnchantment;
+import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
@@ -73,7 +73,7 @@ public class PlayerBlockBreakListener {
                         return;
                     }
                     if (jobManager.onlySilkTouch(job)) {
-                        Optional<ItemStack> iOpt = player.getItemInHand();
+                        Optional<ItemStack> iOpt = player.getItemInHand(HandTypes.MAIN_HAND);
                         if (iOpt.isPresent()) {
                             ItemStack item = iOpt.get();
                             EnchantmentData data = item.getOrCreate(EnchantmentData.class).get();
@@ -157,7 +157,7 @@ public class PlayerBlockBreakListener {
                                             if (playerLevel + 1 == maxLevel) {
                                                 playerManager.setLevel(player, job, playerLevel + 1);
                                                 // Sound
-                                                player.playSound(SoundTypes.LEVEL_UP, player.getLocation().getPosition(), 1);
+                                                player.playSound(SoundTypes.ENTITY_PLAYER_LEVELUP, player.getLocation().getPosition(), 1);
                                                 addFunds(currencyReward);
                                                 player.sendMessage(TextUtils.levelUp(player.getName(), playerLevel + 1, displayName));
                                                 // Tell them they are now at the
@@ -168,7 +168,7 @@ public class PlayerBlockBreakListener {
                                                 playerManager.setExp(player, job, expLeft);
                                                 playerManager.setLevel(player, job, playerLevel + 1);
                                                 // Sound
-                                                player.playSound(SoundTypes.LEVEL_UP, player.getLocation().getPosition(), 1);
+                                                player.playSound(SoundTypes.ENTITY_PLAYER_LEVELUP, player.getLocation().getPosition(), 1);
                                                 addFunds(currencyReward);
                                                 player.sendMessage(TextUtils.levelUp(player.getName(), playerLevel + 1, displayName));
                                                 // Tell them their new

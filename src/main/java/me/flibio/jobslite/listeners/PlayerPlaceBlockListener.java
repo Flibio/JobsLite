@@ -30,7 +30,6 @@ import me.flibio.jobslite.utils.JobManager.ActionType;
 import me.flibio.jobslite.utils.NumberUtils;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
-
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.Transaction;
@@ -133,7 +132,7 @@ public class PlayerPlaceBlockListener {
                                             if (playerLevel + 1 == maxLevel) {
                                                 playerManager.setLevel(player, job, playerLevel + 1);
                                                 // Sound
-                                                player.playSound(SoundTypes.LEVEL_UP, player.getLocation().getPosition(), 1);
+                                                player.playSound(SoundTypes.ENTITY_PLAYER_LEVELUP, player.getLocation().getPosition(), 1);
                                                 addFunds(currencyReward);
                                                 player.sendMessage(TextUtils.levelUp(player.getName(), playerLevel + 1, displayName));
                                                 // Tell them they are now at the
@@ -144,7 +143,7 @@ public class PlayerPlaceBlockListener {
                                                 playerManager.setExp(player, job, expLeft);
                                                 playerManager.setLevel(player, job, playerLevel + 1);
                                                 // Sound
-                                                player.playSound(SoundTypes.LEVEL_UP, player.getLocation().getPosition(), 1);
+                                                player.playSound(SoundTypes.ENTITY_PLAYER_LEVELUP, player.getLocation().getPosition(), 1);
                                                 addFunds(currencyReward);
                                                 player.sendMessage(TextUtils.levelUp(player.getName(), playerLevel + 1, displayName));
                                                 // Tell them their new

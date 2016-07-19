@@ -28,9 +28,9 @@ import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.utils.JobCreationMessages;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.TextUtils;
-
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
@@ -272,13 +272,13 @@ public class CreatingJob {
         if (!playerOptional.isPresent())
             return;
         Player eventPlayer = playerOptional.get();
-        if (eventPlayer.equals(player) && currentTask.equals(CurrentTask.BREAK_CLICK) && !eventPlayer.getItemInHand().isPresent()) {
+        if (eventPlayer.equals(player) && currentTask.equals(CurrentTask.BREAK_CLICK) && !eventPlayer.getItemInHand(HandTypes.MAIN_HAND).isPresent()) {
             currentBlock = event.getTargetBlock().getState();
             // TODO ask if they want to ignore data
             player.sendMessage(JobCreationMessages.genericSuccess("How much currency should breaking this block give?"));
             currentTask = CurrentTask.BREAK_CURRENCY;
         }
-        if (eventPlayer.equals(player) && currentTask.equals(CurrentTask.PLACE_CLICK) && !eventPlayer.getItemInHand().isPresent()) {
+        if (eventPlayer.equals(player) && currentTask.equals(CurrentTask.PLACE_CLICK) && !eventPlayer.getItemInHand(HandTypes.MAIN_HAND).isPresent()) {
             currentBlock = event.getTargetBlock().getState();
             // TODO ask if they want to ignore data
             player.sendMessage(JobCreationMessages.genericSuccess("How much currency should placing this block give?"));
