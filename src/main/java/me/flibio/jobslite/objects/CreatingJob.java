@@ -70,10 +70,10 @@ public class CreatingJob {
     private String displayName = "";
     private boolean silkTouch = true;
     private boolean worldGen = false;
-    private HashMap<BlockState, HashMap<String, Integer>> blockBreaks = new HashMap<BlockState, HashMap<String, Integer>>();
-    private HashMap<BlockState, HashMap<String, Integer>> blockPlaces = new HashMap<BlockState, HashMap<String, Integer>>();
+    private HashMap<BlockState, HashMap<String, Double>> blockBreaks = new HashMap<>();
+    private HashMap<BlockState, HashMap<String, Double>> blockPlaces = new HashMap<>();
     private BlockState currentBlock;
-    private int currentAmount;
+    private double currentAmount;
     private int maxLevel = 100;
     private TextColor color = TextColors.WHITE;
     private CurrentTask currentTask = CurrentTask.CANCELLED;
@@ -104,8 +104,8 @@ public class CreatingJob {
                 player.sendMessage(JobCreationMessages.genericSuccess("Successfully cancelled job creation!"));
                 name = "";
                 displayName = "";
-                blockBreaks = new HashMap<BlockState, HashMap<String, Integer>>();
-                blockPlaces = new HashMap<BlockState, HashMap<String, Integer>>();
+                blockBreaks.clear();
+                blockPlaces.clear();
                 currentBlock = null;
                 currentAmount = 0;
                 currentTask = CurrentTask.CANCELLED;
@@ -161,15 +161,15 @@ public class CreatingJob {
             if (eventPlayer.equals(player)) {
                 event.setCancelled(true);
                 String input = event.getRawMessage().toPlain().trim();
-                int amount;
+                double amount;
                 try {
-                    amount = Integer.parseInt(input);
+                    amount = Double.parseDouble(input);
                 } catch (NumberFormatException e) {
                     player.sendMessage(TextUtils.error("Please input a number!"));
                     return;
                 }
-                if (amount < 0 || amount > 1000000) {
-                    player.sendMessage(TextUtils.error("Please input a number that greater than 0 and less than 1,000,000!"));
+                if (amount < -1000000 || amount > 1000000) {
+                    player.sendMessage(TextUtils.error("Please input a number that greater than -1,000,000 and less than 1,000,000!"));
                     return;
                 }
                 currentAmount = amount;
@@ -183,14 +183,14 @@ public class CreatingJob {
             if (eventPlayer.equals(player)) {
                 event.setCancelled(true);
                 String input = event.getRawMessage().toPlain().trim();
-                int amount;
+                double amount;
                 try {
-                    amount = Integer.parseInt(input);
+                    amount = Double.parseDouble(input);
                 } catch (NumberFormatException e) {
                     player.sendMessage(TextUtils.error("Please input a number!"));
                     return;
                 }
-                if (amount < 0 || amount > 1000000) {
+                if (amount < -1000000 || amount > 1000000) {
                     player.sendMessage(TextUtils.error("Please input a number that greater than 0 and less than 1,000,000!"));
                     return;
                 }
@@ -205,23 +205,23 @@ public class CreatingJob {
             if (eventPlayer.equals(player)) {
                 event.setCancelled(true);
                 String input = event.getRawMessage().toPlain().trim();
-                int amount;
+                double amount;
                 try {
-                    amount = Integer.parseInt(input);
+                    amount = Double.parseDouble(input);
                 } catch (NumberFormatException e) {
                     player.sendMessage(TextUtils.error("Please input a number!"));
                     return;
                 }
-                if (amount < 0 || amount > 1000000) {
+                if (amount < -1000000 || amount > 1000000) {
                     player.sendMessage(TextUtils.error("Please input a number that greater than 0 and less than 1,000,000!"));
                     return;
                 }
-                int exp = amount;
+                double exp = amount;
                 player.sendMessage(JobCreationMessages.genericSuccess("Player will receive a reward of " + exp + " exp for breaking "
                         + currentBlock.toString()));
                 player.sendMessage(TextUtils.line());
                 // Add the block
-                HashMap<String, Integer> data = new HashMap<String, Integer>();
+                HashMap<String, Double> data = new HashMap<>();
                 data.put("currency", currentAmount);
                 data.put("exp", exp);
                 blockBreaks.put(currentBlock, data);
@@ -235,23 +235,23 @@ public class CreatingJob {
             if (eventPlayer.equals(player)) {
                 event.setCancelled(true);
                 String input = event.getRawMessage().toPlain().trim();
-                int amount;
+                double amount;
                 try {
-                    amount = Integer.parseInt(input);
+                    amount = Double.parseDouble(input);
                 } catch (NumberFormatException e) {
                     player.sendMessage(TextUtils.error("Please input a number!"));
                     return;
                 }
-                if (amount < 0 || amount > 1000000) {
+                if (amount < -1000000 || amount > 1000000) {
                     player.sendMessage(TextUtils.error("Please input a number that greater than 0 and less than 1,000,000!"));
                     return;
                 }
-                int exp = amount;
+                double exp = amount;
                 player.sendMessage(JobCreationMessages.genericSuccess("Player will receive a reward of " + exp + " exp for placing "
                         + currentBlock.toString()));
                 player.sendMessage(TextUtils.line());
                 // Add the block
-                HashMap<String, Integer> data = new HashMap<String, Integer>();
+                HashMap<String, Double> data = new HashMap<>();
                 data.put("currency", currentAmount);
                 data.put("exp", exp);
                 blockPlaces.put(currentBlock, data);

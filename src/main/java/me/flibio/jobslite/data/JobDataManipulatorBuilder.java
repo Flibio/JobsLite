@@ -31,6 +31,7 @@ import org.spongepowered.api.data.persistence.InvalidDataException;
 
 import java.util.Optional;
 
+@Deprecated
 public class JobDataManipulatorBuilder implements DataManipulatorBuilder<JobData, ImmutableJobData> {
 
     private int level;

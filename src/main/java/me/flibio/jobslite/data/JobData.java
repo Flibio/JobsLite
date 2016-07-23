@@ -37,6 +37,7 @@ import com.google.common.collect.ComparisonChain;
 
 import java.util.Optional;
 
+@Deprecated
 public class JobData extends AbstractData<JobData, ImmutableJobData> implements DataSerializable {
 
     private int level;

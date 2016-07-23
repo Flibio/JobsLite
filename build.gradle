@@ -11,7 +11,7 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 group 'me.flibio'
-version '1.3.3'
+version '1.3.4'
 
 defaultTasks 'licenseFormat', 'clean', 'build'
 
@@ -33,7 +33,7 @@ dependencies {
     compile 'org.spongepowered:spongeapi:5.0.0-SNAPSHOT'
     compile 'com.github.flibio:updatifier:v1.4.0:api'
     compile 'net.minecrell.mcstats:statslite-sponge:0.2.2'
-    compile 'com.github.flibiostudio:utils:1.2.1'
+    compile 'com.github.flibiostudio:utils:fa20c09'
 }
 
 shadowJar {

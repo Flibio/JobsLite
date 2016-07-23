@@ -28,6 +28,9 @@ import static me.flibio.jobslite.PluginInfo.DESCRIPTION;
 import static me.flibio.jobslite.PluginInfo.ID;
 import static me.flibio.jobslite.PluginInfo.NAME;
 import static me.flibio.jobslite.PluginInfo.VERSION;
+import com.google.inject.Inject;
+import io.github.flibio.utils.commands.CommandLoader;
+import io.github.flibio.utils.file.ConfigManager;
 import me.flibio.jobslite.commands.CreateCommand;
 import me.flibio.jobslite.commands.DeleteCommand;
 import me.flibio.jobslite.commands.JobsCommand;
@@ -48,7 +51,6 @@ import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.updatifier.Updatifier;
 import net.minecrell.mcstats.SpongeStatsLite;
-
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
@@ -61,14 +63,10 @@ import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.economy.EconomyService;
 
-import com.google.inject.Inject;
-
-import io.github.flibio.utils.commands.CommandLoader;
-import io.github.flibio.utils.file.FileManager;
-
 import java.util.HashMap;
 import java.util.Optional;
 
+@SuppressWarnings("deprecation")
 @Updatifier(repoName = "JobsLite", repoOwner = "Flibio", version = "v" + VERSION)
 @Plugin(id = ID, name = NAME, version = VERSION, dependencies = {}, description = DESCRIPTION)
 public class JobsLite {
@@ -83,7 +81,7 @@ public class JobsLite {
 
     public String version = JobsLite.class.getAnnotation(Plugin.class).version();
 
-    public FileManager fileManager;
+    public ConfigManager configManager;
     public JobManager jobManager;
     public PlayerManager playerManager;
     public EconomyService economyService;
@@ -100,9 +98,9 @@ public class JobsLite {
         Sponge.getDataManager().register(JobData.class, ImmutableJobData.class, new JobDataManipulatorBuilder());
         Sponge.getDataManager().register(SignJobData.class, ImmutableSignJobData.class, new SignJobDataManipulatorBuilder());
         // Initialze basic plugin managers needed for further initialization
-        fileManager = FileManager.createInstance(this).get();
+        configManager = ConfigManager.createInstance(this).get();
         jobManager = new JobManager();
-        playerManager = new PlayerManager(logger);
+        playerManager = new PlayerManager();
     }
 
     @Listener
@@ -154,13 +152,15 @@ public class JobsLite {
     }
 
     private void initializeFiles() {
-        fileManager.setDefault("config.conf", "Display-Level", String.class, "enabled");
-        fileManager.setDefault("config.conf", "Chat-Prefixes", String.class, "enabled");
+        configManager.setDefault("config.conf", "Display-Level", String.class, "enabled");
+        configManager.setDefault("config.conf", "Chat-Prefixes", String.class, "enabled");
+
+        configManager.getFile("playerjobdata.conf");
     }
 
     private void loadConfigurationOptions() {
-        Optional<String> lOpt = fileManager.getValue("config.conf", "Display-Level", String.class);
-        Optional<String> pOpt = fileManager.getValue("config.conf", "Chat-Prefixes", String.class);
+        Optional<String> lOpt = configManager.getValue("config.conf", "Display-Level", String.class);
+        Optional<String> pOpt = configManager.getValue("config.conf", "Chat-Prefixes", String.class);
         if (!lOpt.isPresent()) {
             logger.error("Error loading display level option!");
             configOptions.put("displayLevel", "enabled");
@@ -176,7 +176,7 @@ public class JobsLite {
     }
 
     private void registerCommands() {
-        CommandLoader.registerCommands(this,
+        CommandLoader.registerCommands(this, "REPLACE ME",
                 new JobsCommand(),
                 new CreateCommand(),
                 new DeleteCommand(),

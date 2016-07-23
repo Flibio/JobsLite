@@ -24,45 +24,20 @@
  */
 package me.flibio.jobslite.utils;
 
+import io.github.flibio.utils.file.ConfigManager;
 import me.flibio.jobslite.JobsLite;
-import me.flibio.jobslite.data.JobData;
-import me.flibio.jobslite.data.JobDataManipulatorBuilder;
-import me.flibio.jobslite.data.LiteKeys;
-
-import org.slf4j.Logger;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.profile.GameProfile;
-import org.spongepowered.api.profile.GameProfileManager;
 
-import java.util.concurrent.ExecutionException;
+import java.util.Optional;
 
 public class PlayerManager {
 
+    private ConfigManager fileManager;
     private JobManager jobManager;
-    private Logger logger;
 
-    public PlayerManager(Logger logger) {
+    public PlayerManager() {
         jobManager = JobsLite.access.jobManager;
-        this.logger = logger;
-    }
-
-    /**
-     * Looks up a player's UUID
-     * 
-     * @param name Name of the player whom to lookup
-     * @return String of the UUID found(blank string if an error occured)
-     */
-    public String getUUID(String name) {
-        GameProfileManager manager = JobsLite.access.game.getServer().getGameProfileManager();
-        GameProfile profile;
-        try {
-            profile = manager.get(name).get();
-        } catch (InterruptedException | ExecutionException e) {
-            logger.error("Error getting player's UUID");
-            return "";
-        }
-        return profile.getUniqueId().toString();
+        fileManager = JobsLite.access.configManager;
     }
 
     /**
@@ -73,9 +48,9 @@ public class PlayerManager {
     public void addPlayer(Player player) {
         if (playerExists(player))
             return;
-        JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
-        JobData data = builder.setJobInfo("", 0, 0).create();
-        player.offer(data);
+        fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".exp", Double.class, 0.0);
+        fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".level", Integer.class, 0);
+        fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".job", String.class, "");
     }
 
     /**
@@ -85,7 +60,7 @@ public class PlayerManager {
      * @return Boolean based on if the player was found or not
      */
     public boolean playerExists(Player player) {
-        return player.get(LiteKeys.JOB_NAME).isPresent();
+        return fileManager.nodeExists("playerjobdata.conf", player.getUniqueId().toString());
     }
 
     /**
@@ -98,7 +73,7 @@ public class PlayerManager {
         if (!playerExists(player)) {
             return "";
         } else {
-            return player.get(LiteKeys.JOB_NAME).get();
+            return fileManager.getValue("playerjobdata.conf", player.getUniqueId().toString() + ".job", String.class).get();
         }
     }
 
@@ -113,7 +88,7 @@ public class PlayerManager {
         if (!playerExists(player)) {
             return -1;
         } else {
-            return player.get(LiteKeys.LEVEL).get();
+            return fileManager.getValue("playerjobdata.conf", player.getUniqueId().toString() + ".level", Integer.class).get();
         }
     }
 
@@ -124,11 +99,11 @@ public class PlayerManager {
      * @param job Name of the job
      * @return The exp of the player - -1 if an error occured
      */
-    public int getCurrentExp(Player player, String job) {
+    public Optional<Double> getCurrentExp(Player player, String job) {
         if (!playerExists(player)) {
-            return -1;
+            return Optional.empty();
         } else {
-            return player.get(LiteKeys.EXP).get();
+            return Optional.of(fileManager.getValue("playerjobdata.conf", player.getUniqueId().toString() + ".exp", Double.class).get());
         }
     }
 
@@ -140,14 +115,12 @@ public class PlayerManager {
      * @param exp Amount of exp
      * @return Boolean based on if the method was successful or not
      */
-    public boolean setExp(Player player, String jobName, int exp) {
+    public boolean setExp(Player player, String jobName, double exp) {
         if (!jobManager.jobExists(jobName))
             return false;
         if (!playerExists(player))
             return false;
-        JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
-        JobData data = builder.setJobInfo(jobName, player.get(LiteKeys.LEVEL).get(), exp).create();
-        return player.offer(data).isSuccessful();
+        return fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".exp", Double.class, exp);
     }
 
     /**
@@ -163,9 +136,7 @@ public class PlayerManager {
             return false;
         if (!playerExists(player))
             return false;
-        JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
-        JobData data = builder.setJobInfo(jobName, level, player.get(LiteKeys.EXP).get()).create();
-        return player.offer(data).isSuccessful();
+        return fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".level", Integer.class, level);
     }
 
     /**
@@ -180,9 +151,7 @@ public class PlayerManager {
             return false;
         if (!playerExists(player))
             return false;
-        JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
-        JobData data = builder.setJobInfo(jobName, 0, 0).create();
-        return player.offer(data).isSuccessful();
+        return fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".job", String.class, jobName);
     }
 
     /**
@@ -192,9 +161,9 @@ public class PlayerManager {
      * @return Boolean based on if the method was a success or not
      */
     public boolean clearJobs(Player player) {
-        JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
-        JobData data = builder.setJobInfo("", 0, 0).create();
-        return player.offer(data).isSuccessful();
+        fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".exp", Double.class, 0.0);
+        fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".level", Integer.class, 0);
+        return fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".job", String.class, "");
     }
 
     /**
@@ -205,9 +174,24 @@ public class PlayerManager {
      * @return Boolean based on if the method was successful or not
      */
     public boolean clearJob(Player player, String jobName) {
-        JobDataManipulatorBuilder builder = (JobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(JobData.class).get();
-        JobData data = builder.setJobInfo("", 0, 0).create();
-        return player.offer(data).isSuccessful();
+        if (getCurrentJob(player).equalsIgnoreCase(jobName)) {
+            fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".exp", Double.class, 0.0);
+            fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".level", Integer.class, 0);
+            return fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".job", String.class, "");
+        }
+        return false;
+    }
+
+    public void markAsMoved(Player player) {
+        fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".moved", Boolean.class, true);
+    }
+
+    public boolean hasMoved(Player player) {
+        Optional<Boolean> mOpt = fileManager.getValue("playerjobdata.conf", player.getUniqueId().toString() + ".moved", Boolean.class);
+        if (mOpt.isPresent()) {
+            return mOpt.get();
+        }
+        return false;
     }
 
 }

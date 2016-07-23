@@ -24,14 +24,12 @@
  */
 package me.flibio.jobslite.utils;
 
+import io.github.flibio.utils.file.ConfigManager;
 import me.flibio.jobslite.JobsLite;
 import ninja.leaping.configurate.ConfigurationNode;
-
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
-
-import io.github.flibio.utils.file.FileManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,10 +41,10 @@ public class JobManager {
         BREAK, PLACE
     }
 
-    private FileManager fileManager;
+    private ConfigManager fileManager;
 
     public JobManager() {
-        fileManager = JobsLite.access.fileManager;
+        fileManager = JobsLite.access.configManager;
     }
 
     /**
@@ -57,7 +55,8 @@ public class JobManager {
      */
     public boolean jobExists(String name) {
         Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-        if(!rOpt.isPresent()) return false;
+        if (!rOpt.isPresent())
+            return false;
         ConfigurationNode root = rOpt.get();
         // Check if the job name is in the job file
         for (Object raw : root.getChildrenMap().keySet()) {
@@ -84,7 +83,8 @@ public class JobManager {
         } else {
             // Load and get the jobs file
             Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-            if(!rOpt.isPresent()) return "";
+            if (!rOpt.isPresent())
+                return "";
             ConfigurationNode root = rOpt.get();
             if (root.getNode(name) != null) {
                 ConfigurationNode displayNameNode = root.getNode(name).getNode("displayName");
@@ -111,7 +111,8 @@ public class JobManager {
         } else {
             // Load and get the jobs file
             Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-            if(!rOpt.isPresent()) return "";
+            if (!rOpt.isPresent())
+                return "";
             ConfigurationNode root = rOpt.get();
             if (root.getNode(job) != null) {
                 ConfigurationNode rewardNode = root.getNode(job).getNode("rewardProgressionEquation");
@@ -138,7 +139,8 @@ public class JobManager {
         } else {
             // Load and get the jobs file
             Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-            if(!rOpt.isPresent()) return "";
+            if (!rOpt.isPresent())
+                return "";
             ConfigurationNode root = rOpt.get();
             if (root.getNode(job) != null) {
                 ConfigurationNode expNode = root.getNode(job).getNode("expRequiredProgressionEquation");
@@ -165,7 +167,8 @@ public class JobManager {
         } else {
             // Load and get the jobs file
             Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-            if(!rOpt.isPresent()) return TextColors.WHITE;
+            if (!rOpt.isPresent())
+                return TextColors.WHITE;
             ConfigurationNode root = rOpt.get();
             if (root.getNode(jobName) != null) {
                 ConfigurationNode colorNode = root.getNode(jobName).getNode("color");
@@ -197,14 +200,15 @@ public class JobManager {
      *        from
      * @return Boolean based on whether the method was successful or not
      */
-    public boolean newJob(String jobName, String displayName, HashMap<BlockState, HashMap<String, Integer>> blockBreaks,
-            HashMap<BlockState, HashMap<String, Integer>> blockPlaces, int maxLevel, TextColor color, boolean silkTouch, boolean worldGen) {
+    public boolean newJob(String jobName, String displayName, HashMap<BlockState, HashMap<String, Double>> blockBreaks,
+            HashMap<BlockState, HashMap<String, Double>> blockPlaces, int maxLevel, TextColor color, boolean silkTouch, boolean worldGen) {
         if (jobExists(jobName)) {
             return false;
         } else {
             // Load and get the jobs file
             Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-            if(!rOpt.isPresent()) return false;
+            if (!rOpt.isPresent())
+                return false;
             ConfigurationNode root = rOpt.get();
             root.getNode(jobName).getNode("displayName").setValue(displayName);
             root.getNode(jobName).getNode("color").setValue(color.getName().toUpperCase());
@@ -215,20 +219,20 @@ public class JobManager {
             root.getNode(jobName).getNode("worldGen").setValue(worldGen);
             // Enter break data
             for (BlockState state : blockBreaks.keySet()) {
-                HashMap<String, Integer> data = blockBreaks.get(state);
+                HashMap<String, Double> data = blockBreaks.get(state);
                 if (data.containsKey("currency") && data.containsKey("exp")) {
-                    int currency = data.get("currency");
-                    int exp = data.get("exp");
+                    double currency = data.get("currency");
+                    double exp = data.get("exp");
                     root.getNode(jobName).getNode("breaks").getNode(state.toString()).getNode("currency").setValue(currency);
                     root.getNode(jobName).getNode("breaks").getNode(state.toString()).getNode("exp").setValue(exp);
                 }
             }
             // Enter place data
             for (BlockState state : blockPlaces.keySet()) {
-                HashMap<String, Integer> data = blockPlaces.get(state);
+                HashMap<String, Double> data = blockPlaces.get(state);
                 if (data.containsKey("currency") && data.containsKey("exp")) {
-                    int currency = data.get("currency");
-                    int exp = data.get("exp");
+                    double currency = data.get("currency");
+                    double exp = data.get("exp");
                     root.getNode(jobName).getNode("places").getNode(state.toString()).getNode("currency").setValue(currency);
                     root.getNode(jobName).getNode("places").getNode(state.toString()).getNode("exp").setValue(exp);
                 }
@@ -249,7 +253,8 @@ public class JobManager {
         if (!jobExists(jobName))
             return blocks;
         Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-        if(!rOpt.isPresent()) return blocks;
+        if (!rOpt.isPresent())
+            return blocks;
         ConfigurationNode root = rOpt.get();
         ConfigurationNode breaksNode = root.getNode(jobName).getNode("breaks");
         if (breaksNode == null)
@@ -273,7 +278,8 @@ public class JobManager {
         if (!jobExists(jobName))
             return blocks;
         Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-        if(!rOpt.isPresent()) return blocks;
+        if (!rOpt.isPresent())
+            return blocks;
         ConfigurationNode root = rOpt.get();
         ConfigurationNode placesNode = root.getNode(jobName).getNode("places");
         if (placesNode == null)
@@ -294,7 +300,8 @@ public class JobManager {
     public ArrayList<String> getJobs() {
         ArrayList<String> jobs = new ArrayList<String>();
         Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-        if(!rOpt.isPresent()) return jobs;
+        if (!rOpt.isPresent())
+            return jobs;
         ConfigurationNode root = rOpt.get();
         for (Object raw : root.getChildrenMap().keySet()) {
             if (raw instanceof String) {
@@ -311,7 +318,7 @@ public class JobManager {
      * @param block The block to check
      * @return The amount of currency the user is rewarded
      */
-    public int getCurrencyReward(String jobName, String block, ActionType action) {
+    public Optional<Double> getCurrencyReward(String jobName, String block, ActionType action) {
         String path = "";
         switch (action) {
             case BREAK:
@@ -322,20 +329,21 @@ public class JobManager {
                 break;
         }
         if (!jobExists(jobName))
-            return -1;
+            return Optional.empty();
         Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-        if(!rOpt.isPresent()) return -1;
+        if (!rOpt.isPresent())
+            return Optional.empty();
         ConfigurationNode root = rOpt.get();
         ConfigurationNode node = root.getNode(jobName).getNode(path);
         if (node == null)
-            return -1;
+            return Optional.empty();
         ConfigurationNode blockNode = node.getNode(block);
         if (blockNode == null)
-            return -1;
+            return Optional.empty();
         ConfigurationNode currencyNode = blockNode.getNode("currency");
         if (currencyNode == null)
-            return -1;
-        return currencyNode.getInt();
+            return Optional.empty();
+        return Optional.of(currencyNode.getDouble());
     }
 
     /**
@@ -345,7 +353,7 @@ public class JobManager {
      * @param block The block to check
      * @return The amount of experience the user is rewarded
      */
-    public int getExpReward(String jobName, String block, ActionType action) {
+    public Optional<Double> getExpReward(String jobName, String block, ActionType action) {
         String path = "";
         switch (action) {
             case BREAK:
@@ -356,20 +364,21 @@ public class JobManager {
                 break;
         }
         if (!jobExists(jobName))
-            return -1;
+            return Optional.empty();
         Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-        if(!rOpt.isPresent()) return -1;
+        if (!rOpt.isPresent())
+            return Optional.empty();
         ConfigurationNode root = rOpt.get();
         ConfigurationNode breaksNode = root.getNode(jobName).getNode(path);
         if (breaksNode == null)
-            return -1;
+            return Optional.empty();
         ConfigurationNode blockNode = breaksNode.getNode(block);
         if (blockNode == null)
-            return -1;
+            return Optional.empty();
         ConfigurationNode expNode = blockNode.getNode("exp");
         if (expNode == null)
-            return -1;
-        return expNode.getInt();
+            return Optional.empty();
+        return Optional.of(expNode.getDouble());
     }
 
     /**
@@ -382,45 +391,46 @@ public class JobManager {
         if (!jobExists(jobName))
             return -1;
         Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-        if(!rOpt.isPresent()) return -1;
+        if (!rOpt.isPresent())
+            return -1;
         ConfigurationNode root = rOpt.get();
         ConfigurationNode maxNode = root.getNode(jobName).getNode("maxLevel");
         if (maxNode == null)
             return -1;
         return maxNode.getInt();
     }
-    
+
     /**
      * Gets if the job disallows silk touch tools.
-     * @param jobName
-     *  The name of the job.
-     * @return
-     *  If the job disallows silk touch tools.
+     * 
+     * @param jobName The name of the job.
+     * @return If the job disallows silk touch tools.
      */
     public boolean onlySilkTouch(String jobName) {
         if (!jobExists(jobName))
             return false;
         Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-        if(!rOpt.isPresent()) return false;
+        if (!rOpt.isPresent())
+            return false;
         ConfigurationNode root = rOpt.get();
         ConfigurationNode silkTouch = root.getNode(jobName).getNode("silkTouch");
         if (silkTouch == null)
             return false;
         return silkTouch.getBoolean();
     }
-    
+
     /**
      * Gets if the job only allows world generated blocks.
-     * @param jobName
-     *  The name of the job.
-     * @return
-     *  If the job disallows silk touch tools.
+     * 
+     * @param jobName The name of the job.
+     * @return If the job disallows silk touch tools.
      */
     public boolean onlyWorldGen(String jobName) {
         if (!jobExists(jobName))
             return false;
         Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-        if(!rOpt.isPresent()) return false;
+        if (!rOpt.isPresent())
+            return false;
         ConfigurationNode root = rOpt.get();
         ConfigurationNode worldGen = root.getNode(jobName).getNode("worldGen");
         if (worldGen == null)
@@ -436,7 +446,8 @@ public class JobManager {
      */
     public boolean deleteJob(String jobName) {
         Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
-        if(!rOpt.isPresent()) return false;
+        if (!rOpt.isPresent())
+            return false;
         ConfigurationNode root = rOpt.get();
         if (root.getNode(jobName) == null)
             return false;

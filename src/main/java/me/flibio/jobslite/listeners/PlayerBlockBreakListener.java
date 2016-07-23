@@ -108,16 +108,16 @@ public class PlayerBlockBreakListener {
                                     if (playerLevel < 0)
                                         continue;
                                     // Current Exp
-                                    int playerExp = playerManager.getCurrentExp(player, job);
-                                    if (playerExp < 0)
+                                    Optional<Double> playerExp = playerManager.getCurrentExp(player, job);
+                                    if (!playerExp.isPresent())
                                         continue;
                                     // Base exp reward
-                                    int baseExpReward = jobManager.getExpReward(job, block, ActionType.BREAK);
-                                    if (baseExpReward < 0)
+                                    Optional<Double> baseExpReward = jobManager.getExpReward(job, block, ActionType.BREAK);
+                                    if (!baseExpReward.isPresent())
                                         continue;
                                     // Base currency reward
-                                    int baseCurrencyReward = jobManager.getCurrencyReward(job, block, ActionType.BREAK);
-                                    if (baseCurrencyReward < 0)
+                                    Optional<Double> baseCurrencyReward = jobManager.getCurrencyReward(job, block, ActionType.BREAK);
+                                    if (!baseExpReward.isPresent())
                                         continue;
                                     // Get the equations
                                     String rewardEquation = jobManager.getRewardEquation(job);
@@ -129,25 +129,25 @@ public class PlayerBlockBreakListener {
                                         continue;
                                     // Replace the variables in the equation
                                     rewardEquation =
-                                            rewardEquation.replaceAll("startingPoint", baseExpReward + "").replaceAll("currentLevel",
+                                            rewardEquation.replaceAll("startingPoint", baseExpReward.get() + "").replaceAll("currentLevel",
                                                     playerLevel + "");
                                     rewardCurrencyEquation =
-                                            rewardCurrencyEquation.replaceAll("startingPoint", baseCurrencyReward + "").replaceAll("currentLevel",
-                                                    playerLevel + "");
+                                            rewardCurrencyEquation.replaceAll("startingPoint", baseCurrencyReward.get() + "").replaceAll(
+                                                    "currentLevel", playerLevel + "");
                                     expEquation = expEquation.replaceAll("currentLevel", playerLevel + "");
                                     // Calculate the data
-                                    int reward;
-                                    int expRequired = (int) Math.round(NumberUtils.eval(expEquation));
-                                    int currencyReward;
+                                    double reward;
+                                    double expRequired = NumberUtils.eval(expEquation);
+                                    double currencyReward;
                                     if (playerLevel == 0) {
-                                        reward = baseExpReward;
-                                        currencyReward = baseCurrencyReward;
+                                        reward = baseExpReward.get();
+                                        currencyReward = baseCurrencyReward.get();
                                     } else {
-                                        reward = (int) Math.round(NumberUtils.eval(rewardEquation));
-                                        currencyReward = (int) Math.round(NumberUtils.eval(rewardCurrencyEquation));
+                                        reward = NumberUtils.eval(rewardEquation);
+                                        currencyReward = NumberUtils.eval(rewardCurrencyEquation);
                                     }
                                     // Figure it out
-                                    if (playerExp + reward >= expRequired) {
+                                    if (playerExp.get() + reward >= expRequired) {
                                         // Player is leveling up
                                         if (playerLevel == maxLevel) {
                                             // Already at max level
@@ -164,7 +164,7 @@ public class PlayerBlockBreakListener {
                                                 // max level
                                                 player.sendMessage(TextUtils.maxLevel(displayName));
                                             } else {
-                                                int expLeft = reward - (expRequired - playerExp);
+                                                double expLeft = reward - (expRequired - playerExp.get());
                                                 playerManager.setExp(player, job, expLeft);
                                                 playerManager.setLevel(player, job, playerLevel + 1);
                                                 // Sound
@@ -174,7 +174,7 @@ public class PlayerBlockBreakListener {
                                                 // Tell them their new
                                                 // statistics
                                                 String newExpEq = expEquation.replaceAll("currentLevel", (playerLevel + 2) + "");
-                                                int newExp = (int) Math.round(NumberUtils.eval(newExpEq));
+                                                double newExp = NumberUtils.eval(newExpEq);
                                                 player.sendMessage(TextUtils.toGo(newExp - expLeft, playerLevel + 2, displayName));
                                             }
                                         }
@@ -185,7 +185,7 @@ public class PlayerBlockBreakListener {
                                         // don't give them exp
                                         if (maxLevel == playerLevel)
                                             continue;
-                                        playerManager.setExp(player, job, playerExp + reward);
+                                        playerManager.setExp(player, job, playerExp.get() + reward);
                                     }
                                 }
                             }
@@ -196,7 +196,7 @@ public class PlayerBlockBreakListener {
         }
     }
 
-    private void addFunds(int amount) {
+    private void addFunds(double amount) {
         account.deposit(JobsLite.access.economyService.getDefaultCurrency(), BigDecimal.valueOf(amount), Cause.of(NamedCause.owner(JobsLite.access)));
     }
 

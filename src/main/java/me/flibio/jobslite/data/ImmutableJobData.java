@@ -35,6 +35,7 @@ import com.google.common.collect.ComparisonChain;
 
 import java.util.Optional;
 
+@Deprecated
 public class ImmutableJobData extends AbstractImmutableData<ImmutableJobData, JobData> {
 
     private int level;

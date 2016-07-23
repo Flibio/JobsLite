@@ -107,7 +107,7 @@ public class TextUtils {
         return text;
     }
 
-    public static Text toGo(int toGo, int nextLevel, String job) {
+    public static Text toGo(double toGo, int nextLevel, String job) {
         Text text = Text.builder("You now need ").color(TextColors.YELLOW).build();
         text =
                 text.toBuilder()
