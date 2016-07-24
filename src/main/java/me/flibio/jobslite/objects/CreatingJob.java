@@ -377,7 +377,7 @@ public class CreatingJob {
             public void accept(CommandSource source) {
                 if (!currentTask.equals(CurrentTask.OPTION_CLICK))
                     return;
-                player.sendMessage(messageStorage.getMessage("creation.breakSelect"));
+                player.sendMessage(messageStorage.getMessage("creation.breakselect"));
                 currentTask = CurrentTask.BREAK_CLICK;
             }
 
