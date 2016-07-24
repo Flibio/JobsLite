@@ -24,8 +24,8 @@
  */
 package me.flibio.jobslite.objects;
 
+import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
-import me.flibio.jobslite.utils.JobCreationMessages;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.block.BlockState;
@@ -46,6 +46,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class CreatingJob {
+
+    private MessageStorage messageStorage;
 
     private enum CurrentTask {
         CANCELLED,
@@ -83,10 +85,11 @@ public class CreatingJob {
     public CreatingJob(Player player) {
         this.player = player;
         jobManager = JobsLite.access.jobManager;
+        messageStorage = JobsLite.access.messageStorage;
 
-        player.sendMessage(JobCreationMessages.cancelNotification());
+        player.sendMessage(messageStorage.getMessage("creation.cancel"));
         player.sendMessage(TextUtils.line());
-        player.sendMessage(JobCreationMessages.genericQuestion("What would you like the name of the job to be", "(No Spaces)"));
+        player.sendMessage(messageStorage.getMessage("creation.jobname"));
         currentTask = CurrentTask.JOB_NAME;
 
         JobsLite.access.game.getEventManager().registerListeners(JobsLite.access, this);
@@ -101,7 +104,7 @@ public class CreatingJob {
         if (eventPlayer.equals(player) && currentTask != CurrentTask.CANCELLED) {
             if (event.getRawMessage().toPlain().toLowerCase().contains("[cancel]")) {
                 event.setCancelled(true);
-                player.sendMessage(JobCreationMessages.genericSuccess("Successfully cancelled job creation!"));
+                player.sendMessage(messageStorage.getMessage("creation.cancelled"));
                 name = "";
                 displayName = "";
                 blockBreaks.clear();
@@ -118,21 +121,21 @@ public class CreatingJob {
                 event.setCancelled(true);
                 name = event.getRawMessage().toPlain().replaceAll(" ", "").trim();
                 if (!jobManager.jobExists(name)) {
-                    player.sendMessage(JobCreationMessages.genericSuccess("Successfully registered name: " + name + "!"));
+                    player.sendMessage(messageStorage.getMessage("creation.registered.name", "name", name));
                     player.sendMessage(TextUtils.line());
-                    player.sendMessage(JobCreationMessages.genericQuestion("What would you like the display name of the job to be", "(Spaces)"));
+                    player.sendMessage(messageStorage.getMessage("creation.jobdisplay"));
                     currentTask = CurrentTask.JOB_DISPLAY_NAME;
                 } else {
-                    player.sendMessage(TextUtils.error("That job name is already in use!"));
+                    player.sendMessage(messageStorage.getMessage("creation.inuse"));
                 }
             }
         } else if (currentTask.equals(CurrentTask.JOB_DISPLAY_NAME)) {
             if (eventPlayer.equals(player)) {
                 event.setCancelled(true);
                 displayName = event.getRawMessage().toPlain().trim();
-                player.sendMessage(JobCreationMessages.genericSuccess("Successfully registered display name: " + displayName + "!"));
+                player.sendMessage(messageStorage.getMessage("creation.registered.display", "display", displayName));
                 player.sendMessage(TextUtils.line());
-                player.sendMessage(JobCreationMessages.genericQuestion("What would you like the max-level of the job to be", ""));
+                player.sendMessage(messageStorage.getMessage("creation.maxlevel"));
                 currentTask = CurrentTask.MAX_LEVEL;
             }
         } else if (currentTask.equals(CurrentTask.MAX_LEVEL)) {
@@ -143,15 +146,15 @@ public class CreatingJob {
                 try {
                     amount = Integer.parseInt(input);
                 } catch (NumberFormatException e) {
-                    player.sendMessage(TextUtils.error("Please input a number!"));
+                    player.sendMessage(messageStorage.getMessage("creation.number"));
                     return;
                 }
                 if (amount < 0 || amount > 1000000) {
-                    player.sendMessage(TextUtils.error("Please input a number that greater than 0 and less than 1,000,000!"));
+                    player.sendMessage(messageStorage.getMessage("creation.validnumber"));
                     return;
                 }
                 maxLevel = amount;
-                player.sendMessage(JobCreationMessages.genericSuccess("Successfully registered max level: " + maxLevel + "!"));
+                player.sendMessage(messageStorage.getMessage("creation.registered.maxlevel", "level", maxLevel + ""));
                 player.sendMessage(TextUtils.line());
                 colorChoices();
                 currentTask = CurrentTask.COLOR;
@@ -165,18 +168,18 @@ public class CreatingJob {
                 try {
                     amount = Double.parseDouble(input);
                 } catch (NumberFormatException e) {
-                    player.sendMessage(TextUtils.error("Please input a number!"));
+                    player.sendMessage(messageStorage.getMessage("creation.number"));
                     return;
                 }
                 if (amount < -1000000 || amount > 1000000) {
-                    player.sendMessage(TextUtils.error("Please input a number that greater than -1,000,000 and less than 1,000,000!"));
+                    player.sendMessage(messageStorage.getMessage("creation.validnumber"));
                     return;
                 }
                 currentAmount = amount;
-                player.sendMessage(JobCreationMessages.genericSuccess("Player will receive a base of " + currentAmount + " for breaking "
-                        + currentBlock.toString()));
+                player.sendMessage(messageStorage.getMessage("creation.breakbase", "amount", currentAmount + " currency", "block",
+                        currentBlock.toString()));
                 player.sendMessage(TextUtils.line());
-                player.sendMessage(JobCreationMessages.genericQuestion("How much experience should breaking " + currentBlock.toString() + " give", ""));
+                player.sendMessage(messageStorage.getMessage("creation.breakingexp", "block", currentBlock.toString()));
                 currentTask = CurrentTask.BREAK_EXP;
             }
         } else if (currentTask.equals(CurrentTask.PLACE_CURRENCY)) {
@@ -187,18 +190,18 @@ public class CreatingJob {
                 try {
                     amount = Double.parseDouble(input);
                 } catch (NumberFormatException e) {
-                    player.sendMessage(TextUtils.error("Please input a number!"));
+                    player.sendMessage(messageStorage.getMessage("creation.number"));
                     return;
                 }
                 if (amount < -1000000 || amount > 1000000) {
-                    player.sendMessage(TextUtils.error("Please input a number that greater than 0 and less than 1,000,000!"));
+                    player.sendMessage(messageStorage.getMessage("creation.validnumber"));
                     return;
                 }
                 currentAmount = amount;
-                player.sendMessage(JobCreationMessages.genericSuccess("Player will receive a base of " + currentAmount + " for placing "
-                        + currentBlock.toString()));
+                player.sendMessage(messageStorage.getMessage("creation.placebase", "amount", currentAmount + " currency", "block",
+                        currentBlock.toString()));
                 player.sendMessage(TextUtils.line());
-                player.sendMessage(JobCreationMessages.genericQuestion("How much experience should placing " + currentBlock.toString() + " give", ""));
+                player.sendMessage(messageStorage.getMessage("creation.placingexp", "block", currentBlock.toString()));
                 currentTask = CurrentTask.PLACE_EXP;
             }
         } else if (currentTask.equals(CurrentTask.BREAK_EXP)) {
@@ -209,16 +212,15 @@ public class CreatingJob {
                 try {
                     amount = Double.parseDouble(input);
                 } catch (NumberFormatException e) {
-                    player.sendMessage(TextUtils.error("Please input a number!"));
+                    player.sendMessage(messageStorage.getMessage("creation.number"));
                     return;
                 }
                 if (amount < -1000000 || amount > 1000000) {
-                    player.sendMessage(TextUtils.error("Please input a number that greater than 0 and less than 1,000,000!"));
+                    player.sendMessage(messageStorage.getMessage("creation.validnumber"));
                     return;
                 }
                 double exp = amount;
-                player.sendMessage(JobCreationMessages.genericSuccess("Player will receive a reward of " + exp + " exp for breaking "
-                        + currentBlock.toString()));
+                player.sendMessage(messageStorage.getMessage("creation.breakbase", "amount", currentAmount + " exp", "block", currentBlock.toString()));
                 player.sendMessage(TextUtils.line());
                 // Add the block
                 HashMap<String, Double> data = new HashMap<>();
@@ -239,16 +241,15 @@ public class CreatingJob {
                 try {
                     amount = Double.parseDouble(input);
                 } catch (NumberFormatException e) {
-                    player.sendMessage(TextUtils.error("Please input a number!"));
+                    player.sendMessage(messageStorage.getMessage("creation.number"));
                     return;
                 }
                 if (amount < -1000000 || amount > 1000000) {
-                    player.sendMessage(TextUtils.error("Please input a number that greater than 0 and less than 1,000,000!"));
+                    player.sendMessage(messageStorage.getMessage("creation.validnumber"));
                     return;
                 }
                 double exp = amount;
-                player.sendMessage(JobCreationMessages.genericSuccess("Player will receive a reward of " + exp + " exp for placing "
-                        + currentBlock.toString()));
+                player.sendMessage(messageStorage.getMessage("creation.placebase", "amount", currentAmount + " exp", "block", currentBlock.toString()));
                 player.sendMessage(TextUtils.line());
                 // Add the block
                 HashMap<String, Double> data = new HashMap<>();
@@ -275,13 +276,13 @@ public class CreatingJob {
         if (eventPlayer.equals(player) && currentTask.equals(CurrentTask.BREAK_CLICK) && !eventPlayer.getItemInHand(HandTypes.MAIN_HAND).isPresent()) {
             currentBlock = event.getTargetBlock().getState();
             // TODO ask if they want to ignore data
-            player.sendMessage(JobCreationMessages.genericSuccess("How much currency should breaking this block give?"));
+            player.sendMessage(messageStorage.getMessage("creation.breakcurrency"));
             currentTask = CurrentTask.BREAK_CURRENCY;
         }
         if (eventPlayer.equals(player) && currentTask.equals(CurrentTask.PLACE_CLICK) && !eventPlayer.getItemInHand(HandTypes.MAIN_HAND).isPresent()) {
             currentBlock = event.getTargetBlock().getState();
             // TODO ask if they want to ignore data
-            player.sendMessage(JobCreationMessages.genericSuccess("How much currency should placing this block give?"));
+            player.sendMessage(messageStorage.getMessage("creation.placecurrency"));
             currentTask = CurrentTask.PLACE_CURRENCY;
         }
     }
@@ -298,7 +299,7 @@ public class CreatingJob {
                 public void accept(CommandSource source) {
                     if (!currentTask.equals(CurrentTask.COLOR))
                         return;
-                    source.sendMessage(JobCreationMessages.genericSuccess("Set color to " + currentColor.getName(), currentColor));
+                    player.sendMessage(messageStorage.getMessage("creation.setcolor", "color", Text.of(currentColor, currentColor.getName())));
                     source.sendMessage(TextUtils.line());
                     color = currentColor;
                     currentTask = CurrentTask.OPTION_CLICK;
@@ -316,7 +317,7 @@ public class CreatingJob {
                 public void accept(CommandSource source) {
                     if (!currentTask.equals(CurrentTask.COLOR))
                         return;
-                    source.sendMessage(JobCreationMessages.genericSuccess("Set color to " + color.getName(), currentColor));
+                    player.sendMessage(messageStorage.getMessage("creation.setcolor", "color", Text.of(currentColor, currentColor.getName())));
                     source.sendMessage(TextUtils.line());
                     color = currentColor;
                     currentTask = CurrentTask.OPTION_CLICK;
@@ -334,7 +335,7 @@ public class CreatingJob {
                 public void accept(CommandSource source) {
                     if (!currentTask.equals(CurrentTask.COLOR))
                         return;
-                    source.sendMessage(JobCreationMessages.genericSuccess("Set color to " + currentColor.getName(), currentColor));
+                    player.sendMessage(messageStorage.getMessage("creation.setcolor", "color", Text.of(currentColor, currentColor.getName())));
                     source.sendMessage(TextUtils.line());
                     color = currentColor;
                     currentTask = CurrentTask.OPTION_CLICK;
@@ -352,7 +353,7 @@ public class CreatingJob {
                 public void accept(CommandSource source) {
                     if (!currentTask.equals(CurrentTask.COLOR))
                         return;
-                    source.sendMessage(JobCreationMessages.genericSuccess("Set color to " + color.getName(), currentColor));
+                    player.sendMessage(messageStorage.getMessage("creation.setcolor", "color", Text.of(currentColor, currentColor.getName())));
                     source.sendMessage(TextUtils.line());
                     color = currentColor;
                     currentTask = CurrentTask.OPTION_CLICK;
@@ -360,7 +361,7 @@ public class CreatingJob {
                 }
             }, currentColor, currentColor.getName())).build();
         }
-        player.sendMessage(JobCreationMessages.genericInstruction("click on the color you wish this job to be:"));
+        player.sendMessage(messageStorage.getMessage("creation.choosecolor"));
         player.sendMessage(msg1);
         player.sendMessage(msg2);
         player.sendMessage(msg3);
@@ -368,7 +369,7 @@ public class CreatingJob {
     }
 
     private void askAboutBreaks() {
-        player.sendMessage(JobCreationMessages.genericQuestion("Would you like the player to earn currency and expirience from breaking blocks", ""));
+        player.sendMessage(messageStorage.getMessage("creation.breaking"));
         player.sendMessage(TextUtils.line());
         player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
@@ -376,7 +377,7 @@ public class CreatingJob {
             public void accept(CommandSource source) {
                 if (!currentTask.equals(CurrentTask.OPTION_CLICK))
                     return;
-                source.sendMessage(JobCreationMessages.genericInstruction("click on the block you want the player to earn from:"));
+                player.sendMessage(messageStorage.getMessage("creation.breakSelect"));
                 currentTask = CurrentTask.BREAK_CLICK;
             }
 
@@ -394,7 +395,7 @@ public class CreatingJob {
     }
 
     private void againBreaks() {
-        player.sendMessage(JobCreationMessages.genericQuestion("Would you like to add another block", ""));
+        player.sendMessage(messageStorage.getMessage("creation.addanother"));
         player.sendMessage(TextUtils.line());
         player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
@@ -402,7 +403,7 @@ public class CreatingJob {
             public void accept(CommandSource source) {
                 if (!currentTask.equals(CurrentTask.OPTION_CLICK))
                     return;
-                source.sendMessage(JobCreationMessages.genericInstruction("click on the block you want the player to earn from:"));
+                player.sendMessage(messageStorage.getMessage("creation.breakselect"));
                 currentTask = CurrentTask.BREAK_CLICK;
             }
 
@@ -420,7 +421,7 @@ public class CreatingJob {
     }
 
     private void askAboutPlaces() {
-        player.sendMessage(JobCreationMessages.genericQuestion("Would you like the player to earn currency and expirience from placing blocks", ""));
+        player.sendMessage(messageStorage.getMessage("creation.placing"));
         player.sendMessage(TextUtils.line());
         player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
@@ -428,7 +429,7 @@ public class CreatingJob {
             public void accept(CommandSource source) {
                 if (!currentTask.equals(CurrentTask.OPTION_CLICK))
                     return;
-                source.sendMessage(JobCreationMessages.genericInstruction("click on the block you want the player to earn from:"));
+                player.sendMessage(messageStorage.getMessage("creation.placeselect"));
                 currentTask = CurrentTask.PLACE_CLICK;
             }
 
@@ -446,7 +447,7 @@ public class CreatingJob {
     }
 
     private void againPlaces() {
-        player.sendMessage(JobCreationMessages.genericQuestion("Would you like to add another block", ""));
+        player.sendMessage(messageStorage.getMessage("creation.addanother"));
         player.sendMessage(TextUtils.line());
         player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
@@ -454,7 +455,7 @@ public class CreatingJob {
             public void accept(CommandSource source) {
                 if (!currentTask.equals(CurrentTask.OPTION_CLICK))
                     return;
-                source.sendMessage(JobCreationMessages.genericInstruction("click on the block you want the player to earn from:"));
+                player.sendMessage(messageStorage.getMessage("creation.placeselect"));
                 currentTask = CurrentTask.PLACE_CLICK;
             }
 
@@ -473,8 +474,7 @@ public class CreatingJob {
 
     private void askSilkTouch() {
         currentTask = CurrentTask.SILK_TOUCH;
-        player.sendMessage(JobCreationMessages.genericQuestion(
-                "Would you like the job to give a reward when the player is using a silk touch tool", ""));
+        player.sendMessage(messageStorage.getMessage("creation.silktouch"));
         player.sendMessage(TextUtils.line());
         player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
@@ -483,7 +483,7 @@ public class CreatingJob {
                 if (!currentTask.equals(CurrentTask.SILK_TOUCH))
                     return;
                 silkTouch = true;
-                player.sendMessage(JobCreationMessages.genericSuccess("The job will give rewards when using a silk touch tool!"));
+                player.sendMessage(messageStorage.getMessage("creation.silktouchyes"));
                 askWorldGenerated();
             }
 
@@ -495,7 +495,7 @@ public class CreatingJob {
                 if (!currentTask.equals(CurrentTask.SILK_TOUCH))
                     return;
                 silkTouch = false;
-                player.sendMessage(JobCreationMessages.genericSuccess("The job will not give rewards when using a silk touch tool!"));
+                player.sendMessage(messageStorage.getMessage("creation.silktouchno"));
                 askWorldGenerated();
             }
 
@@ -504,8 +504,7 @@ public class CreatingJob {
 
     private void askWorldGenerated() {
         currentTask = CurrentTask.GENERATED;
-        player.sendMessage(JobCreationMessages.genericQuestion(
-                "Would you like the job to reward players only when they break blocks generated by the world", ""));
+        player.sendMessage(messageStorage.getMessage("creation.worldgen"));
         player.sendMessage(TextUtils.line());
         player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
@@ -513,9 +512,8 @@ public class CreatingJob {
             public void accept(CommandSource source) {
                 if (!currentTask.equals(CurrentTask.GENERATED))
                     return;
-                worldGen = true;
-                player.sendMessage(JobCreationMessages
-                        .genericSuccess("The job will reward players only when they break blocks generated by the world!"));
+                worldGen = false;
+                player.sendMessage(messageStorage.getMessage("creation.worldgenyes"));
                 complete();
             }
 
@@ -526,9 +524,8 @@ public class CreatingJob {
             public void accept(CommandSource source) {
                 if (!currentTask.equals(CurrentTask.GENERATED))
                     return;
-                worldGen = false;
-                player.sendMessage(JobCreationMessages
-                        .genericSuccess("The job will not reward players only when they break blocks generated by the world!"));
+                worldGen = true;
+                player.sendMessage(messageStorage.getMessage("creation.worldgenno"));
                 complete();
             }
 
@@ -538,9 +535,9 @@ public class CreatingJob {
     private void complete() {
         currentTask = CurrentTask.COMPLETE;
         if (jobManager.newJob(name, displayName, blockBreaks, blockPlaces, maxLevel, color, silkTouch, worldGen)) {
-            player.sendMessage(JobCreationMessages.genericSuccess("Successfully registered " + displayName + " as a job!", color));
+            player.sendMessage(messageStorage.getMessage("creation.success"));
         } else {
-            player.sendMessage(TextUtils.error("An error occured saving " + displayName + "!"));
+            player.sendMessage(messageStorage.getMessage("creation.fail"));
         }
     }
 }

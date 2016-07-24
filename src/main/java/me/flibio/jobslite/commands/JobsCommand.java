@@ -24,31 +24,32 @@
  */
 package me.flibio.jobslite.commands;
 
+import io.github.flibio.utils.commands.AsyncCommand;
+import io.github.flibio.utils.commands.BaseCommandExecutor;
+import io.github.flibio.utils.commands.Command;
+import io.github.flibio.utils.message.MessageStorage;
+import me.flibio.jobslite.JobsLite;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
-
-import io.github.flibio.utils.commands.AsyncCommand;
-import io.github.flibio.utils.commands.BaseCommandExecutor;
-import io.github.flibio.utils.commands.Command;
 
 @AsyncCommand
 @Command(aliases = {"jobs"})
 public class JobsCommand extends BaseCommandExecutor<Player> {
 
+    private MessageStorage messageStorage = JobsLite.access.messageStorage;
+
     @Override
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(Text.of("The base jobs command."));
+                .description(messageStorage.getMessage("command.jobs.description"));
     }
 
     @Override
     public void run(Player src, CommandContext args) {
-        src.sendMessage(Text.of(TextColors.RED, "Not enough arguments! Usage: /jobs create|delete|join|set"));
+        src.sendMessage(messageStorage.getMessage("command.usage", "command", "/jobs", "subcommands", "create | delete | join | set"));
     }
 
 }

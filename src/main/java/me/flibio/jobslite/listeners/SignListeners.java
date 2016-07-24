@@ -24,6 +24,7 @@
  */
 package me.flibio.jobslite.listeners;
 
+import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.data.LiteKeys;
 import me.flibio.jobslite.data.SignJobData;
@@ -31,7 +32,6 @@ import me.flibio.jobslite.data.SignJobDataManipulatorBuilder;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
-
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.tileentity.Sign;
@@ -46,7 +46,6 @@ import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.block.tileentity.ChangeSignEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -56,6 +55,7 @@ public class SignListeners {
 
     private JobManager jobManager = JobsLite.access.jobManager;
     private PlayerManager playerManager = JobsLite.access.playerManager;
+    private MessageStorage messageStorage = JobsLite.access.messageStorage;
 
     @Listener
     public void onSignChange(ChangeSignEvent event, @First Player player) {
@@ -71,19 +71,19 @@ public class SignListeners {
                                 (SignJobDataManipulatorBuilder) Sponge.getDataManager().getManipulatorBuilder(SignJobData.class).get();
                         SignJobData signJobData = builder.setSignInfo(signJob).create();
                         signTile.offer(signJobData);
-                        player.sendMessage(Text.of(TextColors.GREEN, "Successfully created a join job sign!"));
+                        player.sendMessage(messageStorage.getMessage("sign.success"));
                         return;
                     } else {
-                        player.sendMessage(Text.of(TextColors.RED, "That job could not be found!"));
+                        player.sendMessage(messageStorage.getMessage("sign.nojob"));
                         return;
                     }
                 }
             } catch (IndexOutOfBoundsException | NoSuchElementException e) {
-                player.sendMessage(Text.of(TextColors.RED, "Please follow the correct sign format!"));
+                player.sendMessage(messageStorage.getMessage("sign.invalid"));
                 return;
             }
         } else if (signTile.get(LiteKeys.JOB_NAME).isPresent() && !player.hasPermission("jobs.admin.sign.delete")) {
-            player.sendMessage(Text.of(TextColors.RED, "You may not edit this sign!"));
+            player.sendMessage(messageStorage.getMessage("sign.nopermission"));
             event.setCancelled(true);
         }
     }
@@ -97,33 +97,25 @@ public class SignListeners {
                 String displayName = jobManager.getDisplayName(job);
                 if (!displayName.isEmpty()) {
                     if (playerManager.getCurrentJob(player).equalsIgnoreCase(job)) {
-                        player.sendMessage(TextUtils.error("You are already a " + job + "!"));
+                        player.sendMessage(messageStorage.getMessage("command.join.already", "job", job));
                         return;
                     }
-                    player.sendMessage(TextUtils.success("Are you sure you want to become a " + displayName + "?", TextColors.GREEN));
+                    player.sendMessage(messageStorage.getMessage("command.join.confirm", "job", job));
                     player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
                         @Override
                         public void accept(CommandSource source) {
                             if (!playerManager.setJob(player, job)) {
-                                player.sendMessage(TextUtils.error("An error has occured!"));
+                                player.sendMessage(messageStorage.getMessage("generic.error"));
                                 return;
                             }
-                            player.sendMessage(TextUtils.success("You are now a " + displayName + "!", TextColors.GREEN));
-                        }
-
-                    }));
-                    player.sendMessage(TextUtils.noOption(new Consumer<CommandSource>() {
-
-                        @Override
-                        public void accept(CommandSource source) {
-                            player.sendMessage(TextUtils.error("If you change your mind, you can click any of the above options again!"));
+                            player.sendMessage(messageStorage.getMessage("command.join.success", "job", job));
                         }
 
                     }));
                 }
             } else {
-                player.sendMessage(Text.of(TextColors.RED, "The job could not be found!"));
+                player.sendMessage(messageStorage.getMessage("sign.invalid"));
                 event.setCancelled(true);
             }
         }
@@ -141,7 +133,7 @@ public class SignListeners {
                     }
                     Player player = playerOptional.get();
                     if (!player.hasPermission("jobs.admin.sign.delete")) {
-                        player.sendMessage(Text.of(TextColors.RED, "You may not remove this sign!"));
+                        player.sendMessage(messageStorage.getMessage("sign.nopermission"));
                         event.setCancelled(true);
                     }
                 }

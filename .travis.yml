@@ -2,7 +2,7 @@ language: java
 jdk:
 - oraclejdk8
 script:
-- chmod +x ./gradlew
+- gradle build shadowJar
 after_success:
 - 'if [ ${TRAVIS_PULL_REQUEST} != "false" ]; then exit; fi'
 - 'if [ -z ${TRAVIS_TAG} ]; then exit; fi'

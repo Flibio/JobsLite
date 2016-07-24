@@ -24,12 +24,13 @@
  */
 package me.flibio.jobslite.listeners;
 
+import com.google.common.collect.ImmutableMap;
+import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.JobManager.ActionType;
 import me.flibio.jobslite.utils.NumberUtils;
 import me.flibio.jobslite.utils.PlayerManager;
-import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.Transaction;
@@ -46,8 +47,11 @@ import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.item.Enchantments;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,6 +59,7 @@ import java.util.UUID;
 public class PlayerBlockBreakListener {
 
     private UniqueAccount account;
+    private MessageStorage messageStorage = JobsLite.access.messageStorage;
 
     @Listener
     public void onBlockBreak(ChangeBlockEvent.Break event, @First Player player) {
@@ -159,10 +164,11 @@ public class PlayerBlockBreakListener {
                                                 // Sound
                                                 player.playSound(SoundTypes.ENTITY_PLAYER_LEVELUP, player.getLocation().getPosition(), 1);
                                                 addFunds(currencyReward);
-                                                player.sendMessage(TextUtils.levelUp(player.getName(), playerLevel + 1, displayName));
+                                                player.sendMessage(messageStorage.getMessage("working.levelup", ImmutableMap.of("player",
+                                                        Text.of(player.getName()), "level", Text.of(playerLevel + 1), "job", Text.of(displayName))));
                                                 // Tell them they are now at the
                                                 // max level
-                                                player.sendMessage(TextUtils.maxLevel(displayName));
+                                                player.sendMessage(messageStorage.getMessage("working.maxlevel", "job", displayName));
                                             } else {
                                                 double expLeft = reward - (expRequired - playerExp.get());
                                                 playerManager.setExp(player, job, expLeft);
@@ -170,12 +176,14 @@ public class PlayerBlockBreakListener {
                                                 // Sound
                                                 player.playSound(SoundTypes.ENTITY_PLAYER_LEVELUP, player.getLocation().getPosition(), 1);
                                                 addFunds(currencyReward);
-                                                player.sendMessage(TextUtils.levelUp(player.getName(), playerLevel + 1, displayName));
+                                                player.sendMessage(messageStorage.getMessage("working.levelup", ImmutableMap.of("player",
+                                                        Text.of(player.getName()), "level", Text.of(playerLevel + 1), "job", Text.of(displayName))));
                                                 // Tell them their new
                                                 // statistics
                                                 String newExpEq = expEquation.replaceAll("currentLevel", (playerLevel + 2) + "");
                                                 double newExp = NumberUtils.eval(newExpEq);
-                                                player.sendMessage(TextUtils.toGo(newExp - expLeft, playerLevel + 2, displayName));
+                                                player.sendMessage(messageStorage.getMessage("working.nextlevel", "exp", NumberFormat
+                                                        .getNumberInstance(Locale.US).format(newExp - expLeft)));
                                             }
                                         }
                                     } else {

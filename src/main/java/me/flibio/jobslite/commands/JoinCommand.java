@@ -24,23 +24,20 @@
  */
 package me.flibio.jobslite.commands;
 
+import io.github.flibio.utils.commands.AsyncCommand;
+import io.github.flibio.utils.commands.BaseCommandExecutor;
+import io.github.flibio.utils.commands.Command;
+import io.github.flibio.utils.commands.ParentCommand;
+import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
-
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
-
-import io.github.flibio.utils.commands.AsyncCommand;
-import io.github.flibio.utils.commands.BaseCommandExecutor;
-import io.github.flibio.utils.commands.Command;
-import io.github.flibio.utils.commands.ParentCommand;
 
 import java.util.function.Consumer;
 
@@ -51,20 +48,21 @@ public class JoinCommand extends BaseCommandExecutor<Player> {
 
     private PlayerManager playerManager = JobsLite.access.playerManager;
     private JobManager jobManager = JobsLite.access.jobManager;
+    private MessageStorage messageStorage = JobsLite.access.messageStorage;
 
     @Override
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(Text.of("Creates a job."))
-                .permission("jobs.create");
+                .description(messageStorage.getMessage("command.join.description"))
+                .permission("jobs.join");
     }
 
     @Override
     public void run(Player player, CommandContext args) {
         if (playerManager.playerExists(player)) {
-            player.sendMessage(TextUtils.instruction("click on the job you would like to join"));
-            player.sendMessage(TextUtils.error("This will reset your current level and exp for the job!"));
+            player.sendMessage(messageStorage.getMessage("command.join.select"));
+            player.sendMessage(messageStorage.getMessage("command.join.warn"));
             for (String job : jobManager.getJobs()) {
                 if (jobManager.jobExists(job)) {
                     final String displayName = jobManager.getDisplayName(job);
@@ -74,27 +72,19 @@ public class JoinCommand extends BaseCommandExecutor<Player> {
                             @Override
                             public void accept(CommandSource source) {
                                 if (playerManager.getCurrentJob(player).equalsIgnoreCase(job)) {
-                                    player.sendMessage(TextUtils.error("You are already a " + job + "!"));
+                                    player.sendMessage(messageStorage.getMessage("command.join.already", "job", job));
                                     return;
                                 }
-                                player.sendMessage(TextUtils.success("Are you sure you want to become a " + displayName + "?", TextColors.GREEN));
+                                player.sendMessage(messageStorage.getMessage("command.join.confirm", "job", job));
                                 player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
                                     @Override
                                     public void accept(CommandSource source) {
                                         if (!playerManager.setJob(player, job)) {
-                                            player.sendMessage(TextUtils.error("An error has occured!"));
+                                            player.sendMessage(messageStorage.getMessage("generic.error"));
                                             return;
                                         }
-                                        player.sendMessage(TextUtils.success("You are now a " + displayName + "!", TextColors.GREEN));
-                                    }
-
-                                }));
-                                player.sendMessage(TextUtils.noOption(new Consumer<CommandSource>() {
-
-                                    @Override
-                                    public void accept(CommandSource source) {
-                                        player.sendMessage(TextUtils.error("If you change your mind, you can click any of the above options again!"));
+                                        player.sendMessage(messageStorage.getMessage("command.join.success", "job", job));
                                     }
 
                                 }));
@@ -105,7 +95,7 @@ public class JoinCommand extends BaseCommandExecutor<Player> {
                 }
             }
         } else {
-            player.sendMessage(Text.builder("An error has occurred!").color(TextColors.RED).build());
+            player.sendMessage(messageStorage.getMessage("generic.error"));
         }
     }
 }

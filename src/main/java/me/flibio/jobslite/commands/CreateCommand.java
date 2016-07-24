@@ -24,17 +24,15 @@
  */
 package me.flibio.jobslite.commands;
 
+import io.github.flibio.utils.commands.BaseCommandExecutor;
+import io.github.flibio.utils.commands.Command;
+import io.github.flibio.utils.commands.ParentCommand;
+import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.objects.CreatingJob;
-
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
-
-import io.github.flibio.utils.commands.BaseCommandExecutor;
-import io.github.flibio.utils.commands.Command;
-import io.github.flibio.utils.commands.ParentCommand;
 
 @ParentCommand(parentCommand = JobsCommand.class)
 @Command(aliases = {"create"})
@@ -44,7 +42,7 @@ public class CreateCommand extends BaseCommandExecutor<Player> {
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(Text.of("Create a new job"))
+                .description(JobsLite.access.messageStorage.getMessage("command.create.description"))
                 .permission("jobs.admin.create");
     }
 

@@ -24,26 +24,25 @@
  */
 package me.flibio.jobslite.commands;
 
+import io.github.flibio.utils.commands.AsyncCommand;
+import io.github.flibio.utils.commands.BaseCommandExecutor;
+import io.github.flibio.utils.commands.Command;
+import io.github.flibio.utils.commands.ParentCommand;
+import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
-
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
-
-import io.github.flibio.utils.commands.AsyncCommand;
-import io.github.flibio.utils.commands.BaseCommandExecutor;
-import io.github.flibio.utils.commands.Command;
-import io.github.flibio.utils.commands.ParentCommand;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -55,18 +54,20 @@ public class SetCommand extends BaseCommandExecutor<Player> {
 
     private PlayerManager playerManager = JobsLite.access.playerManager;
     private JobManager jobManager = JobsLite.access.jobManager;
+    private MessageStorage messageStorage = JobsLite.access.messageStorage;
 
     @Override
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(Text.of("Sets a player's job"))
-                .permission("jobs.set");
+                .arguments(GenericArguments.string(Text.of("player")))
+                .description(messageStorage.getMessage("command.set.description"))
+                .permission("jobs.admin.set");
     }
 
     @Override
     public void run(Player player, CommandContext args) {
-        Optional<String> target = args.<String>getOne("target");
+        Optional<String> target = args.<String>getOne("player");
         if (target.isPresent()) {
             String targetName = target.get();
             Optional<UserStorageService> sOpt = Sponge.getServiceManager().provide(UserStorageService.class);
@@ -76,14 +77,14 @@ public class SetCommand extends BaseCommandExecutor<Player> {
                 if (uOpt.isPresent()) {
                     Optional<Player> pOpt = uOpt.get().getPlayer();
                     if (!pOpt.isPresent()) {
-                        player.sendMessage(TextUtils.error("An error has occured!"));
+                        player.sendMessage(messageStorage.getMessage("generic.error"));
                         return;
                     }
                     Player targetPlayer = pOpt.get();
                     // Check if the target player exists
                     if (playerManager.playerExists(targetPlayer)) {
                         // Send a list of jobs to the player
-                        player.sendMessage(TextUtils.instruction("click on the job you would like " + targetName + " to be"));
+                        player.sendMessage(messageStorage.getMessage("command.set.select", "player", targetName));
                         for (String job : jobManager.getJobs()) {
                             if (jobManager.jobExists(job)) {
                                 String displayName = jobManager.getDisplayName(job);
@@ -93,30 +94,22 @@ public class SetCommand extends BaseCommandExecutor<Player> {
                                         @Override
                                         public void accept(CommandSource source) {
                                             if (playerManager.getCurrentJob(targetPlayer).equalsIgnoreCase(job)) {
-                                                player.sendMessage(TextUtils.error(targetName + " is already a " + job + "!"));
+                                                player.sendMessage(messageStorage.getMessage("command.set.already", "player", targetName, "job",
+                                                        displayName));
                                                 return;
                                             }
-                                            player.sendMessage(TextUtils.success("Are you sure you want to set " + targetName
-                                                    + "'s job to a " + displayName + "?", TextColors.GREEN));
+                                            player.sendMessage(messageStorage.getMessage("command.set.confirm", "player", targetName, "job",
+                                                    displayName));
                                             player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
                                                 @Override
                                                 public void accept(CommandSource source) {
                                                     if (!playerManager.setJob(targetPlayer, job)) {
-                                                        player.sendMessage(TextUtils.error("An error has occured!"));
+                                                        player.sendMessage(messageStorage.getMessage("generic.error"));
                                                     } else {
-                                                        player.sendMessage(TextUtils.success(targetName + " is now a " + displayName + "!",
-                                                                TextColors.GREEN));
+                                                        player.sendMessage(messageStorage.getMessage("command.set.success", "player", targetName,
+                                                                "job", displayName));
                                                     }
-                                                }
-
-                                            }));
-                                            player.sendMessage(TextUtils.noOption(new Consumer<CommandSource>() {
-
-                                                @Override
-                                                public void accept(CommandSource source) {
-                                                    player.sendMessage(TextUtils
-                                                            .error("If you change your mind, you can click any of the above options again!"));
                                                 }
 
                                             }));
@@ -127,16 +120,16 @@ public class SetCommand extends BaseCommandExecutor<Player> {
                             }
                         }
                     } else {
-                        player.sendMessage(TextUtils.error("An error has occurred!"));
+                        player.sendMessage(messageStorage.getMessage("generic.error"));
                     }
                 } else {
-                    player.sendMessage(TextUtils.error("An error has occurred!"));
+                    player.sendMessage(messageStorage.getMessage("generic.error"));
                 }
             } else {
-                player.sendMessage(TextUtils.error("An error has occurred!"));
+                player.sendMessage(messageStorage.getMessage("generic.error"));
             }
         } else {
-            player.sendMessage(TextUtils.error("Not enough arguments! Usage: /jobs set {playername}"));
+            player.sendMessage(messageStorage.getMessage("command.usage", "command", "/jobs", "subcommands", "set <player>"));
         }
     }
 

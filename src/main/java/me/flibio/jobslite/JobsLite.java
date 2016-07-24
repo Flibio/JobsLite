@@ -28,9 +28,11 @@ import static me.flibio.jobslite.PluginInfo.DESCRIPTION;
 import static me.flibio.jobslite.PluginInfo.ID;
 import static me.flibio.jobslite.PluginInfo.NAME;
 import static me.flibio.jobslite.PluginInfo.VERSION;
+
 import com.google.inject.Inject;
 import io.github.flibio.utils.commands.CommandLoader;
 import io.github.flibio.utils.file.ConfigManager;
+import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.commands.CreateCommand;
 import me.flibio.jobslite.commands.DeleteCommand;
 import me.flibio.jobslite.commands.JobsCommand;
@@ -62,6 +64,7 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -85,6 +88,7 @@ public class JobsLite {
     public JobManager jobManager;
     public PlayerManager playerManager;
     public EconomyService economyService;
+    public MessageStorage messageStorage;
 
     private static HashMap<String, String> configOptions = new HashMap<String, String>();
 
@@ -101,11 +105,14 @@ public class JobsLite {
         configManager = ConfigManager.createInstance(this).get();
         jobManager = new JobManager();
         playerManager = new PlayerManager();
+
+        messageStorage = MessageStorage.createInstance(this);
+        messageStorage.defaultMessages("jobslitemessages");
     }
 
     @Listener
     public void onServerInitialize(GameInitializationEvent event) {
-        logger.info("JobsLite by Flibio initializing!");
+        logger.info("JobsLite " + version + " by Flibio initializing!");
         this.statsLite.start();
         initializeFiles();
         loadConfigurationOptions();
@@ -176,7 +183,7 @@ public class JobsLite {
     }
 
     private void registerCommands() {
-        CommandLoader.registerCommands(this, "REPLACE ME",
+        CommandLoader.registerCommands(this, TextSerializers.FORMATTING_CODE.serialize(messageStorage.getMessage("command.invalidsource")),
                 new JobsCommand(),
                 new CreateCommand(),
                 new DeleteCommand(),

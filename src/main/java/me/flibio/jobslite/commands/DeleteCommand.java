@@ -24,22 +24,19 @@
  */
 package me.flibio.jobslite.commands;
 
+import io.github.flibio.utils.commands.AsyncCommand;
+import io.github.flibio.utils.commands.BaseCommandExecutor;
+import io.github.flibio.utils.commands.Command;
+import io.github.flibio.utils.commands.ParentCommand;
+import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.TextUtils;
-
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
-
-import io.github.flibio.utils.commands.AsyncCommand;
-import io.github.flibio.utils.commands.BaseCommandExecutor;
-import io.github.flibio.utils.commands.Command;
-import io.github.flibio.utils.commands.ParentCommand;
 
 import java.util.function.Consumer;
 
@@ -49,18 +46,19 @@ import java.util.function.Consumer;
 public class DeleteCommand extends BaseCommandExecutor<Player> {
 
     private JobManager jobManager = JobsLite.access.jobManager;
+    private MessageStorage messageStorage = JobsLite.access.messageStorage;
 
     @Override
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(Text.of("Deletes a job."))
-                .permission("jobs.delete");
+                .description(JobsLite.access.messageStorage.getMessage("command.delete.description"))
+                .permission("jobs.admin.delete");
     }
 
     @Override
     public void run(Player player, CommandContext args) {
-        player.sendMessage(TextUtils.instruction("select the job you would like to delete"));
+        player.sendMessage(messageStorage.getMessage("command.delete.select"));
         for (String job : jobManager.getJobs()) {
             if (jobManager.jobExists(job)) {
                 String displayName = jobManager.getDisplayName(job);
@@ -69,16 +67,16 @@ public class DeleteCommand extends BaseCommandExecutor<Player> {
 
                         @Override
                         public void accept(CommandSource source) {
-                            player.sendMessage(TextUtils.success("Are you sure you wish to delete " + displayName + "?", TextColors.GREEN));
+                            player.sendMessage(messageStorage.getMessage("command.delete.confirm", "job", displayName));
                             player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
                                 @Override
                                 public void accept(CommandSource source) {
                                     if (!jobManager.deleteJob(job)) {
-                                        player.sendMessage(TextUtils.error("An error has occured!"));
+                                        player.sendMessage(messageStorage.getMessage("generic.error"));
                                         return;
                                     }
-                                    player.sendMessage(TextUtils.success("Successfully deleted " + displayName + "!", TextColors.GREEN));
+                                    player.sendMessage(messageStorage.getMessage("command.delete.success", "job", displayName));
                                 }
 
                             }));
@@ -86,8 +84,7 @@ public class DeleteCommand extends BaseCommandExecutor<Player> {
 
                                 @Override
                                 public void accept(CommandSource source) {
-                                    player.sendMessage(TextUtils.error("Cancelled deletion of " + displayName + "!"));
-                                    player.sendMessage(TextUtils.error("If you change your mind, you can click any of the above options again!"));
+                                    player.sendMessage(messageStorage.getMessage("command.delete.cancelled"));
                                 }
 
                             }));
