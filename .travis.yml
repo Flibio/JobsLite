@@ -1,10 +1,8 @@
 language: java
 jdk:
 - oraclejdk8
-script:
-- gradle build shadowJar
-after_success:
-- 'if [ ${TRAVIS_PULL_REQUEST} != "false" ]; then exit; fi'
-- 'if [ -z ${TRAVIS_TAG} ]; then exit; fi'
-- 'wc -c ${HOME}/build/${TRAVIS_REPO_SLUG}/build/libs/JobsLite-${TRAVIS_TAG}-all.jar'
-- 'curl -v -X POST -d "{\"tag_name\": \"${TRAVIS_TAG}\",\"target_commitish\": \"master\",\"name\": \"JobsLite ${TRAVIS_TAG}\"}" --header "Content-Type:application/json" -u Flibio:${GITHUB_OAUTH} "https://api.github.com/repos/Flibio/JobsLite/releases"'
+notifications:
+  email: false
+install:
+- 'chmod +x ./gradlew'
+script: gradle
