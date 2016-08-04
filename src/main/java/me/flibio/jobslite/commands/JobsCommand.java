@@ -38,7 +38,7 @@ import org.spongepowered.api.entity.living.player.Player;
 @Command(aliases = {"jobs"})
 public class JobsCommand extends BaseCommandExecutor<Player> {
 
-    private MessageStorage messageStorage = JobsLite.access.messageStorage;
+    private MessageStorage messageStorage = JobsLite.getMessageStorage();
 
     @Override
     public Builder getCommandSpecBuilder() {

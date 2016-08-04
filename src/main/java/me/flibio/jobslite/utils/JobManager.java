@@ -26,25 +26,29 @@ package me.flibio.jobslite.utils;
 
 import io.github.flibio.utils.file.ConfigManager;
 import me.flibio.jobslite.JobsLite;
+import me.flibio.jobslite.creation.data.Reward;
 import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.entity.EntityType;
 import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 public class JobManager {
 
     public enum ActionType {
-        BREAK, PLACE
+        BREAK, PLACE, KILL
     }
 
     private ConfigManager fileManager;
 
     public JobManager() {
-        fileManager = JobsLite.access.configManager;
+        fileManager = JobsLite.getConfigManager();
     }
 
     /**
@@ -174,7 +178,7 @@ public class JobManager {
                 ConfigurationNode colorNode = root.getNode(jobName).getNode("color");
                 if (colorNode != null) {
                     String rawColor = colorNode.getString();
-                    Optional<TextColor> optional = JobsLite.access.game.getRegistry().getType(TextColor.class, rawColor.toUpperCase());
+                    Optional<TextColor> optional = Sponge.getRegistry().getType(TextColor.class, rawColor.toUpperCase());
                     if (optional.isPresent()) {
                         return optional.get();
                     } else {
@@ -198,10 +202,11 @@ public class JobManager {
      *        from
      * @param blockPlaces Blocks that people can place and earn currency & xp
      *        from
+     * @param mobKills Mobs that players can kill and be rewarded for
      * @return Boolean based on whether the method was successful or not
      */
-    public boolean newJob(String jobName, String displayName, HashMap<BlockState, HashMap<String, Double>> blockBreaks,
-            HashMap<BlockState, HashMap<String, Double>> blockPlaces, int maxLevel, TextColor color, boolean silkTouch, boolean worldGen) {
+    public boolean newJob(String jobName, String displayName, HashMap<BlockState, Reward> blockBreaks, HashMap<BlockState, Reward> blockPlaces,
+            HashMap<EntityType, Reward> mobKills, int maxLevel, TextColor color, boolean silkTouch, boolean worldGen) {
         if (jobExists(jobName)) {
             return false;
         } else {
@@ -218,24 +223,25 @@ public class JobManager {
             root.getNode(jobName).getNode("silkTouch").setValue(silkTouch);
             root.getNode(jobName).getNode("worldGen").setValue(worldGen);
             // Enter break data
-            for (BlockState state : blockBreaks.keySet()) {
-                HashMap<String, Double> data = blockBreaks.get(state);
-                if (data.containsKey("currency") && data.containsKey("exp")) {
-                    double currency = data.get("currency");
-                    double exp = data.get("exp");
-                    root.getNode(jobName).getNode("breaks").getNode(state.toString()).getNode("currency").setValue(currency);
-                    root.getNode(jobName).getNode("breaks").getNode(state.toString()).getNode("exp").setValue(exp);
-                }
+            for (Entry<BlockState, Reward> entry : blockBreaks.entrySet()) {
+                BlockState state = entry.getKey();
+                Reward reward = entry.getValue();
+                root.getNode(jobName).getNode("breaks").getNode(state.toString()).getNode("currency").setValue(reward.getCurrency());
+                root.getNode(jobName).getNode("breaks").getNode(state.toString()).getNode("exp").setValue(reward.getExp());
             }
             // Enter place data
-            for (BlockState state : blockPlaces.keySet()) {
-                HashMap<String, Double> data = blockPlaces.get(state);
-                if (data.containsKey("currency") && data.containsKey("exp")) {
-                    double currency = data.get("currency");
-                    double exp = data.get("exp");
-                    root.getNode(jobName).getNode("places").getNode(state.toString()).getNode("currency").setValue(currency);
-                    root.getNode(jobName).getNode("places").getNode(state.toString()).getNode("exp").setValue(exp);
-                }
+            for (Entry<BlockState, Reward> entry : blockPlaces.entrySet()) {
+                BlockState state = entry.getKey();
+                Reward reward = entry.getValue();
+                root.getNode(jobName).getNode("places").getNode(state.toString()).getNode("currency").setValue(reward.getCurrency());
+                root.getNode(jobName).getNode("places").getNode(state.toString()).getNode("exp").setValue(reward.getExp());
+            }
+            // Enter kill data
+            for (Entry<EntityType, Reward> entry : mobKills.entrySet()) {
+                EntityType type = entry.getKey();
+                Reward reward = entry.getValue();
+                root.getNode(jobName).getNode("kills").getNode(type.getId()).getNode("currency").setValue(reward.getCurrency());
+                root.getNode(jobName).getNode("kills").getNode(type.getId()).getNode("exp").setValue(reward.getExp());
             }
             fileManager.saveFile("jobsData.conf", root);
             return true;
@@ -293,6 +299,31 @@ public class JobManager {
     }
 
     /**
+     * Gets all of the mobs that will give you rewards for killing them
+     * 
+     * @param jobName The job to check
+     * @return Array list of the mobs
+     */
+    public ArrayList<String> getKillMobs(String jobName) {
+        ArrayList<String> mobs = new ArrayList<String>();
+        if (!jobExists(jobName))
+            return mobs;
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if (!rOpt.isPresent())
+            return mobs;
+        ConfigurationNode root = rOpt.get();
+        ConfigurationNode killsNode = root.getNode(jobName).getNode("kills");
+        if (killsNode == null)
+            return mobs;
+        for (Object raw : killsNode.getChildrenMap().keySet()) {
+            if (raw instanceof String) {
+                mobs.add((String) raw);
+            }
+        }
+        return mobs;
+    }
+
+    /**
      * Gets all of the registered jobs
      * 
      * @return An arraylist of all of the registered jobs
@@ -312,13 +343,13 @@ public class JobManager {
     }
 
     /**
-     * Gets the currency reward for a specific job and block
+     * Gets the currency reward for a specific job and type
      * 
      * @param jobName The job to check
-     * @param block The block to check
+     * @param type The type to check
      * @return The amount of currency the user is rewarded
      */
-    public Optional<Double> getCurrencyReward(String jobName, String block, ActionType action) {
+    public Optional<Double> getCurrencyReward(String jobName, String type, ActionType action) {
         String path = "";
         switch (action) {
             case BREAK:
@@ -326,6 +357,9 @@ public class JobManager {
                 break;
             case PLACE:
                 path = "places";
+                break;
+            case KILL:
+                path = "kills";
                 break;
         }
         if (!jobExists(jobName))
@@ -337,23 +371,23 @@ public class JobManager {
         ConfigurationNode node = root.getNode(jobName).getNode(path);
         if (node == null)
             return Optional.empty();
-        ConfigurationNode blockNode = node.getNode(block);
-        if (blockNode == null)
+        ConfigurationNode typeNode = node.getNode(type);
+        if (typeNode == null)
             return Optional.empty();
-        ConfigurationNode currencyNode = blockNode.getNode("currency");
+        ConfigurationNode currencyNode = typeNode.getNode("currency");
         if (currencyNode == null)
             return Optional.empty();
         return Optional.of(currencyNode.getDouble());
     }
 
     /**
-     * Gets the exp reward for a specific job and block
+     * Gets the exp reward for a specific job and type
      * 
      * @param jobName The job to check
-     * @param block The block to check
+     * @param type The type to check
      * @return The amount of experience the user is rewarded
      */
-    public Optional<Double> getExpReward(String jobName, String block, ActionType action) {
+    public Optional<Double> getExpReward(String jobName, String type, ActionType action) {
         String path = "";
         switch (action) {
             case BREAK:
@@ -361,6 +395,9 @@ public class JobManager {
                 break;
             case PLACE:
                 path = "places";
+                break;
+            case KILL:
+                path = "kills";
                 break;
         }
         if (!jobExists(jobName))
@@ -372,10 +409,10 @@ public class JobManager {
         ConfigurationNode breaksNode = root.getNode(jobName).getNode(path);
         if (breaksNode == null)
             return Optional.empty();
-        ConfigurationNode blockNode = breaksNode.getNode(block);
-        if (blockNode == null)
+        ConfigurationNode typeNode = breaksNode.getNode(type);
+        if (typeNode == null)
             return Optional.empty();
-        ConfigurationNode expNode = blockNode.getNode("exp");
+        ConfigurationNode expNode = typeNode.getNode("exp");
         if (expNode == null)
             return Optional.empty();
         return Optional.of(expNode.getDouble());

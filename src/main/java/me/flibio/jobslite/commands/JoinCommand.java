@@ -46,9 +46,9 @@ import java.util.function.Consumer;
 @Command(aliases = {"join"})
 public class JoinCommand extends BaseCommandExecutor<Player> {
 
-    private PlayerManager playerManager = JobsLite.access.playerManager;
-    private JobManager jobManager = JobsLite.access.jobManager;
-    private MessageStorage messageStorage = JobsLite.access.messageStorage;
+    private PlayerManager playerManager = JobsLite.getPlayerManager();
+    private JobManager jobManager = JobsLite.getJobManager();
+    private MessageStorage messageStorage = JobsLite.getMessageStorage();
 
     @Override
     public Builder getCommandSpecBuilder() {

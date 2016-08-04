@@ -59,13 +59,13 @@ import java.util.UUID;
 public class PlayerBlockBreakListener {
 
     private UniqueAccount account;
-    private MessageStorage messageStorage = JobsLite.access.messageStorage;
+    private MessageStorage messageStorage = JobsLite.getMessageStorage();
 
     @Listener
     public void onBlockBreak(ChangeBlockEvent.Break event, @First Player player) {
         // Load managers
-        PlayerManager playerManager = JobsLite.access.playerManager;
-        JobManager jobManager = JobsLite.access.jobManager;
+        PlayerManager playerManager = JobsLite.getPlayerManager();
+        JobManager jobManager = JobsLite.getJobManager();
         if (playerManager.playerExists(player)) {
             String job = playerManager.getCurrentJob(player).trim();
             if (!job.isEmpty()) {
@@ -73,7 +73,7 @@ public class PlayerBlockBreakListener {
                     String displayName = jobManager.getDisplayName(job);
                     if (displayName.isEmpty())
                         return;
-                    Optional<UniqueAccount> uOpt = JobsLite.access.economyService.getOrCreateAccount(player.getUniqueId());
+                    Optional<UniqueAccount> uOpt = JobsLite.getEconomyService().getOrCreateAccount(player.getUniqueId());
                     if (!uOpt.isPresent()) {
                         return;
                     }
@@ -205,7 +205,8 @@ public class PlayerBlockBreakListener {
     }
 
     private void addFunds(double amount) {
-        account.deposit(JobsLite.access.economyService.getDefaultCurrency(), BigDecimal.valueOf(amount), Cause.of(NamedCause.owner(JobsLite.access)));
+        account.deposit(JobsLite.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(amount),
+                Cause.of(NamedCause.owner(JobsLite.getInstance())));
     }
 
 }

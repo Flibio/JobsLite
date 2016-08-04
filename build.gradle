@@ -11,7 +11,7 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 group 'me.flibio'
-version '1.4.1'
+version '1.5.0'
 
 defaultTasks 'licenseFormat', 'clean', 'build'
 
@@ -75,7 +75,7 @@ license {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.11'
+  gradleVersion = '2.14'
 }
 
 blossom {

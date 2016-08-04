@@ -22,33 +22,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package me.flibio.jobslite.commands;
+package me.flibio.jobslite.creation.data;
 
-import io.github.flibio.utils.commands.BaseCommandExecutor;
-import io.github.flibio.utils.commands.Command;
-import io.github.flibio.utils.commands.ParentCommand;
-import me.flibio.jobslite.JobsLite;
-import me.flibio.jobslite.creation.CreatingJob;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.command.spec.CommandSpec.Builder;
-import org.spongepowered.api.entity.living.player.Player;
+public class DisplayNameData extends DataType<String> {
 
-@ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"create"})
-public class CreateCommand extends BaseCommandExecutor<Player> {
-
-    @Override
-    public Builder getCommandSpecBuilder() {
-        return CommandSpec.builder()
-                .executor(this)
-                .description(JobsLite.getMessageStorage().getMessage("command.create.description"))
-                .permission("jobs.admin.create");
+    public DisplayNameData(String value) {
+        super(value);
     }
 
     @Override
-    public void run(Player src, CommandContext args) {
-        new CreatingJob(src.getUniqueId());
+    public DataTypes getType() {
+        return DataTypes.DISPLAY_NAME;
     }
 
 }

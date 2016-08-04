@@ -36,8 +36,8 @@ import org.spongepowered.api.event.network.ClientConnectionEvent;
 @SuppressWarnings("deprecation")
 public class PlayerJoinListener {
 
-    private PlayerManager playerManager = JobsLite.access.playerManager;
-    private JobManager jobManager = JobsLite.access.jobManager;
+    private PlayerManager playerManager = JobsLite.getPlayerManager();
+    private JobManager jobManager = JobsLite.getJobManager();
 
     @Listener
     public void onPlayerJoin(ClientConnectionEvent.Join event) {
@@ -47,7 +47,7 @@ public class PlayerJoinListener {
         if (!jobManager.jobExists(playerManager.getCurrentJob(player))) {
             playerManager.clearJobs(player);
         }
-        JobsLite.access.economyService.getOrCreateAccount(player.getUniqueId());
+        JobsLite.getEconomyService().getOrCreateAccount(player.getUniqueId());
     }
 
     private void moveData(Player player) {

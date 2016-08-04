@@ -36,7 +36,7 @@ import java.util.function.Consumer;
 
 public class TextUtils {
 
-    private static MessageStorage messageStorage = JobsLite.access.messageStorage;
+    private static MessageStorage messageStorage = JobsLite.getMessageStorage();
 
     public static Text yesOption(Consumer<CommandSource> onClick) {
         Text yes = Text.builder("[").color(TextColors.DARK_GRAY).build();
@@ -93,12 +93,6 @@ public class TextUtils {
         text = text.toBuilder().append(Text.builder("}").color(TextColors.DARK_GRAY).build()).build();
         text = text.toBuilder().append(Text.builder(" " + name + " ").color(TextColors.YELLOW).build()).build();
         text = text.toBuilder().append(Text.builder(message).color(TextColors.WHITE).build()).build();
-
-        return text;
-    }
-
-    public static Text line() {
-        Text text = Text.builder("").build();
 
         return text;
     }

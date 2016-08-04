@@ -45,14 +45,14 @@ import java.util.function.Consumer;
 @Command(aliases = {"delete", "del"})
 public class DeleteCommand extends BaseCommandExecutor<Player> {
 
-    private JobManager jobManager = JobsLite.access.jobManager;
-    private MessageStorage messageStorage = JobsLite.access.messageStorage;
+    private JobManager jobManager = JobsLite.getJobManager();
+    private MessageStorage messageStorage = JobsLite.getMessageStorage();
 
     @Override
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(JobsLite.access.messageStorage.getMessage("command.delete.description"))
+                .description(messageStorage.getMessage("command.delete.description"))
                 .permission("jobs.admin.delete");
     }
 

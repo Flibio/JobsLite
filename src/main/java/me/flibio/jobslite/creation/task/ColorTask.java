@@ -22,40 +22,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package me.flibio.jobslite.listeners;
+package me.flibio.jobslite.creation.task;
+
+import org.spongepowered.api.text.Text;
 
 import me.flibio.jobslite.JobsLite;
-import me.flibio.jobslite.utils.JobManager;
-import me.flibio.jobslite.utils.PlayerManager;
-import me.flibio.jobslite.utils.TextUtils;
+import me.flibio.jobslite.creation.CreatingJob;
+import me.flibio.jobslite.creation.data.ColorData;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.message.MessageChannelEvent;
+import org.spongepowered.api.text.format.TextColor;
 
-public class PlayerChatListener {
+import java.util.Optional;
 
-    private JobManager jobManager = JobsLite.getJobManager();
-    private PlayerManager playerManager = JobsLite.getPlayerManager();
+public class ColorTask extends Task {
+
+    public ColorTask(CreatingJob parent) {
+        super(parent);
+    }
+
+    public void initialize() {
+        Sponge.getEventManager().registerListeners(JobsLite.getInstance(), this);
+        getPlayer().sendMessage(messages.getMessage("creation.choosecolor"));
+    }
 
     @Listener
     public void onPlayerChat(MessageChannelEvent.Chat event, @First Player player) {
-        if (JobsLite.optionEnabled("chatPrefixes")) {
-            if (playerManager.playerExists(player)) {
-                String currentJob = playerManager.getCurrentJob(player).trim();
-                if (!currentJob.isEmpty()) {
-                    String displayName = jobManager.getDisplayName(currentJob);
-                    if (!displayName.isEmpty()) {
-                        if (JobsLite.optionEnabled("displayLevel")) {
-                            event.setMessage(TextUtils.chatMessage(player.getName(), displayName, playerManager.getCurrentLevel(player, currentJob),
-                                    jobManager.getColor(currentJob), event.getRawMessage().toPlain()));
-                        } else {
-                            event.setMessage(TextUtils.chatMessage(player.getName(), displayName, jobManager.getColor(currentJob),
-                                    event.getRawMessage().toPlain()));
-                        }
-                    }
-                }
+        String message = event.getRawMessage().toPlain();
+        if (player.getUniqueId().equals(getParent().getUUID())) {
+            // Verify the data
+            Optional<TextColor> cOpt = Sponge.getRegistry().getType(TextColor.class, message.trim().replaceAll(" ", "_"));
+            if (cOpt.isPresent()) {
+                // Set the data
+                getParent().setData(new ColorData(cOpt.get()));
+                // Send confirmation
+                player.sendMessage(messages.getMessage("creation.setcolor", "color", Text.of(cOpt.get(), message)));
+                // Move to the next task
+                getParent().nextTask();
+                // Remove the listener
+                Sponge.getEventManager().unregisterListeners(this);
+            } else {
+                player.sendMessage(messages.getMessage("creation.invalidcolor"));
             }
+            event.setCancelled(true);
         }
     }
 }

@@ -53,9 +53,9 @@ import java.util.function.Consumer;
 
 public class SignListeners {
 
-    private JobManager jobManager = JobsLite.access.jobManager;
-    private PlayerManager playerManager = JobsLite.access.playerManager;
-    private MessageStorage messageStorage = JobsLite.access.messageStorage;
+    private JobManager jobManager = JobsLite.getJobManager();
+    private PlayerManager playerManager = JobsLite.getPlayerManager();
+    private MessageStorage messageStorage = JobsLite.getMessageStorage();
 
     @Listener
     public void onSignChange(ChangeSignEvent event, @First Player player) {

@@ -22,33 +22,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package me.flibio.jobslite.commands;
+package me.flibio.jobslite.creation.task;
 
-import io.github.flibio.utils.commands.BaseCommandExecutor;
-import io.github.flibio.utils.commands.Command;
-import io.github.flibio.utils.commands.ParentCommand;
+import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.creation.CreatingJob;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.command.spec.CommandSpec.Builder;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 
-@ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"create"})
-public class CreateCommand extends BaseCommandExecutor<Player> {
+import java.util.Optional;
 
-    @Override
-    public Builder getCommandSpecBuilder() {
-        return CommandSpec.builder()
-                .executor(this)
-                .description(JobsLite.getMessageStorage().getMessage("command.create.description"))
-                .permission("jobs.admin.create");
+public abstract class Task {
+
+    protected MessageStorage messages = JobsLite.getMessageStorage();
+    private CreatingJob parent;
+
+    public Task(CreatingJob parent) {
+        this.parent = parent;
     }
 
-    @Override
-    public void run(Player src, CommandContext args) {
-        new CreatingJob(src.getUniqueId());
+    public abstract void initialize();
+
+    public CreatingJob getParent() {
+        return parent;
     }
 
+    protected Player getPlayer() {
+        for (Player player : Sponge.getServer().getOnlinePlayers()) {
+            if (player.getUniqueId().equals(parent.getUUID()))
+                return player;
+        }
+        return null;
+    }
+
+    protected Optional<Integer> verifyInteger(String string) {
+        try {
+            return Optional.of(Integer.parseInt(string));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    protected Optional<Double> verifyDouble(String string) {
+        try {
+            return Optional.of(Double.parseDouble(string));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
 }

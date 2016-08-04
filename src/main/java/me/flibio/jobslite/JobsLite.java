@@ -44,6 +44,7 @@ import me.flibio.jobslite.data.JobData;
 import me.flibio.jobslite.data.JobDataManipulatorBuilder;
 import me.flibio.jobslite.data.SignJobData;
 import me.flibio.jobslite.data.SignJobDataManipulatorBuilder;
+import me.flibio.jobslite.listeners.MobDeathListener;
 import me.flibio.jobslite.listeners.PlayerBlockBreakListener;
 import me.flibio.jobslite.listeners.PlayerChatListener;
 import me.flibio.jobslite.listeners.PlayerJoinListener;
@@ -66,6 +67,8 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -74,7 +77,7 @@ import java.util.Optional;
 @Plugin(id = ID, name = NAME, version = VERSION, dependencies = {}, description = DESCRIPTION)
 public class JobsLite {
 
-    public static JobsLite access;
+    private static JobsLite instance;
 
     @Inject public Logger logger;
 
@@ -84,11 +87,11 @@ public class JobsLite {
 
     public String version = JobsLite.class.getAnnotation(Plugin.class).version();
 
-    public ConfigManager configManager;
-    public JobManager jobManager;
-    public PlayerManager playerManager;
-    public EconomyService economyService;
-    public MessageStorage messageStorage;
+    private static ConfigManager configManager;
+    private static JobManager jobManager;
+    private static PlayerManager playerManager;
+    private static EconomyService economyService;
+    private static MessageStorage messageStorage;
 
     private static HashMap<String, String> configOptions = new HashMap<String, String>();
 
@@ -97,7 +100,7 @@ public class JobsLite {
 
     @Listener
     public void onPreInitialize(GamePreInitializationEvent event) {
-        access = this;
+        instance = this;
         // Register the custom data
         Sponge.getDataManager().register(JobData.class, ImmutableJobData.class, new JobDataManipulatorBuilder());
         Sponge.getDataManager().register(SignJobData.class, ImmutableSignJobData.class, new SignJobDataManipulatorBuilder());
@@ -155,6 +158,7 @@ public class JobsLite {
         game.getEventManager().registerListeners(this, new PlayerJoinListener());
         game.getEventManager().registerListeners(this, new PlayerBlockBreakListener());
         game.getEventManager().registerListeners(this, new PlayerPlaceBlockListener());
+        game.getEventManager().registerListeners(this, new MobDeathListener());
         game.getEventManager().registerListeners(this, new SignListeners());
     }
 
@@ -165,17 +169,15 @@ public class JobsLite {
         configManager.getFile("playerjobdata.conf");
     }
 
-    private void loadConfigurationOptions() {
+    private static void loadConfigurationOptions() {
         Optional<String> lOpt = configManager.getValue("config.conf", "Display-Level", String.class);
         Optional<String> pOpt = configManager.getValue("config.conf", "Chat-Prefixes", String.class);
         if (!lOpt.isPresent()) {
-            logger.error("Error loading display level option!");
             configOptions.put("displayLevel", "enabled");
         } else {
             configOptions.put("displayLevel", lOpt.get());
         }
         if (!pOpt.isPresent()) {
-            logger.error("Error loading chat prefix option!");
             configOptions.put("chatPrefixes", "enabled");
         } else {
             configOptions.put("chatPrefixes", pOpt.get());
@@ -191,7 +193,42 @@ public class JobsLite {
                 new SetCommand());
     }
 
+    // Static Methods
+
+    public static JobsLite getInstance() {
+        return instance;
+    }
+
+    public static ConfigManager getConfigManager() {
+        return configManager;
+    }
+
+    public static JobManager getJobManager() {
+        return jobManager;
+    }
+
+    public static PlayerManager getPlayerManager() {
+        return playerManager;
+    }
+
+    public static EconomyService getEconomyService() {
+        return economyService;
+    }
+
+    public static MessageStorage getMessageStorage() {
+        return messageStorage;
+    }
+
+    public static DateTimeFormatter getFormatter() {
+        return DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+    }
+
+    public static String getCurrent() {
+        return getFormatter().parse(new Date().toString()).toString();
+    }
+
     public static boolean optionEnabled(String optionName) {
+        loadConfigurationOptions();
         if (configOptions.get(optionName).equalsIgnoreCase("enabled")) {
             return true;
         } else {
@@ -200,6 +237,7 @@ public class JobsLite {
     }
 
     public static String getOption(String optionName) {
+        loadConfigurationOptions();
         if (!configOptions.containsKey(optionName))
             return "";
         return configOptions.get(optionName);

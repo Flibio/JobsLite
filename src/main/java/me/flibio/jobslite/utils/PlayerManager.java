@@ -36,8 +36,8 @@ public class PlayerManager {
     private JobManager jobManager;
 
     public PlayerManager() {
-        jobManager = JobsLite.access.jobManager;
-        fileManager = JobsLite.access.configManager;
+        jobManager = JobsLite.getJobManager();
+        fileManager = JobsLite.getConfigManager();
     }
 
     /**
@@ -46,10 +46,8 @@ public class PlayerManager {
      * @param player The player to add
      */
     public void addPlayer(Player player) {
-        System.out.println("add player");
         if (playerExists(player))
             return;
-        System.out.println("NOW");
         fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".exp", Double.class, 0.0);
         fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".level", Integer.class, 0);
         fileManager.setValue("playerjobdata.conf", player.getUniqueId().toString() + ".job", String.class, "");
