@@ -43,7 +43,7 @@ import java.util.function.Consumer;
 
 @AsyncCommand
 @ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"join"})
+@Command(aliases = {"join"}, permission = "jobs.user.join")
 public class JoinCommand extends BaseCommandExecutor<Player> {
 
     private PlayerManager playerManager = JobsLite.getPlayerManager();
@@ -54,8 +54,7 @@ public class JoinCommand extends BaseCommandExecutor<Player> {
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(messageStorage.getMessage("command.join.description"))
-                .permission("jobs.join");
+                .description(messageStorage.getMessage("command.join.description"));
     }
 
     @Override

@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 
 @AsyncCommand
 @ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"set"})
+@Command(aliases = {"set"}, permission = "jobs.admin.set")
 public class SetCommand extends BaseCommandExecutor<Player> {
 
     private PlayerManager playerManager = JobsLite.getPlayerManager();
@@ -61,8 +61,7 @@ public class SetCommand extends BaseCommandExecutor<Player> {
         return CommandSpec.builder()
                 .executor(this)
                 .arguments(GenericArguments.string(Text.of("player")))
-                .description(messageStorage.getMessage("command.set.description"))
-                .permission("jobs.admin.set");
+                .description(messageStorage.getMessage("command.set.description"));
     }
 
     @Override

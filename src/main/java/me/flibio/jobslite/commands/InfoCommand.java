@@ -41,7 +41,7 @@ import java.util.Optional;
 
 @AsyncCommand
 @ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"info"})
+@Command(aliases = {"info"}, permission = "jobs.user.info")
 public class InfoCommand extends BaseCommandExecutor<Player> {
 
     private PlayerManager playerManager = JobsLite.getPlayerManager();
@@ -51,8 +51,7 @@ public class InfoCommand extends BaseCommandExecutor<Player> {
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(messageStorage.getMessage("command.info.description"))
-                .permission("jobs.info");
+                .description(messageStorage.getMessage("command.info.description"));
     }
 
     @Override

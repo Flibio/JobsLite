@@ -39,7 +39,7 @@ import org.spongepowered.api.entity.living.player.Player;
 
 @AsyncCommand
 @ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"leave", "quit", "exit"})
+@Command(aliases = {"leave", "quit", "exit"}, permission = "jobs.user.leave")
 public class LeaveCommand extends BaseCommandExecutor<Player> {
 
     private PlayerManager playerManager = JobsLite.getPlayerManager();
@@ -49,8 +49,7 @@ public class LeaveCommand extends BaseCommandExecutor<Player> {
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(messageStorage.getMessage("command.leave.description"))
-                .permission("jobs.leave");
+                .description(messageStorage.getMessage("command.leave.description"));
     }
 
     @Override

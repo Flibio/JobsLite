@@ -35,15 +35,14 @@ import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
 
 @ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"create"})
+@Command(aliases = {"create"}, permission = "jobs.admin.create")
 public class CreateCommand extends BaseCommandExecutor<Player> {
 
     @Override
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(JobsLite.getMessageStorage().getMessage("command.create.description"))
-                .permission("jobs.admin.create");
+                .description(JobsLite.getMessageStorage().getMessage("command.create.description"));
     }
 
     @Override

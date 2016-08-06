@@ -42,7 +42,7 @@ import java.util.function.Consumer;
 
 @AsyncCommand
 @ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"delete", "del"})
+@Command(aliases = {"delete", "del"}, permission = "jobs.admin.delete")
 public class DeleteCommand extends BaseCommandExecutor<Player> {
 
     private JobManager jobManager = JobsLite.getJobManager();
@@ -52,8 +52,7 @@ public class DeleteCommand extends BaseCommandExecutor<Player> {
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(messageStorage.getMessage("command.delete.description"))
-                .permission("jobs.admin.delete");
+                .description(messageStorage.getMessage("command.delete.description"));
     }
 
     @Override
