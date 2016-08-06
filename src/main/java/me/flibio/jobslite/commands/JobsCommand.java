@@ -35,7 +35,7 @@ import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
 
 @AsyncCommand
-@Command(aliases = {"jobs"})
+@Command(aliases = {"jobs"}, permission = "jobs")
 public class JobsCommand extends BaseCommandExecutor<Player> {
 
     private MessageStorage messageStorage = JobsLite.getMessageStorage();
