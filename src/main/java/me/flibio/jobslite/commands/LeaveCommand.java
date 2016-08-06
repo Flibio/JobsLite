@@ -27,29 +27,54 @@ package me.flibio.jobslite.commands;
 import io.github.flibio.utils.commands.AsyncCommand;
 import io.github.flibio.utils.commands.BaseCommandExecutor;
 import io.github.flibio.utils.commands.Command;
+import io.github.flibio.utils.commands.ParentCommand;
 import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
+import me.flibio.jobslite.utils.PlayerManager;
+import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
 
 @AsyncCommand
-@Command(aliases = {"jobs"}, permission = "jobs")
-public class JobsCommand extends BaseCommandExecutor<Player> {
+@ParentCommand(parentCommand = JobsCommand.class)
+@Command(aliases = {"leave", "quit", "exit"})
+public class LeaveCommand extends BaseCommandExecutor<Player> {
 
+    private PlayerManager playerManager = JobsLite.getPlayerManager();
     private MessageStorage messageStorage = JobsLite.getMessageStorage();
 
     @Override
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(messageStorage.getMessage("command.jobs.description"));
+                .description(messageStorage.getMessage("command.leave.description"))
+                .permission("jobs.leave");
     }
 
     @Override
-    public void run(Player src, CommandContext args) {
-        src.sendMessage(messageStorage.getMessage("command.usage", "command", "/jobs", "subcommands", "create | delete | join | leave | set"));
+    public void run(Player player, CommandContext args) {
+        if (playerManager.playerExists(player)) {
+            if (!playerManager.getCurrentJob(player).isEmpty()) {
+                player.sendMessage(messageStorage.getMessage("command.leave.warn"));
+                player.sendMessage(messageStorage.getMessage("command.leave.confirm"));
+                player.sendMessage(TextUtils.yesOption(c -> {
+                    if (playerManager.clearJob(player, playerManager.getCurrentJob(player))) {
+                        player.sendMessage(messageStorage.getMessage("command.leave.success"));
+                    } else {
+                        player.sendMessage(messageStorage.getMessage("generic.error"));
+                    }
+                }));
+                player.sendMessage(TextUtils.noOption(c -> {
+                    player.sendMessage(messageStorage.getMessage("command.leave.again"));
+                }));
+            } else {
+                player.sendMessage(messageStorage.getMessage("command.leave.nojob"));
+            }
+        } else {
+            player.sendMessage(messageStorage.getMessage("generic.error"));
+        }
     }
 
 }

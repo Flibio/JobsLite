@@ -37,6 +37,7 @@ import me.flibio.jobslite.commands.CreateCommand;
 import me.flibio.jobslite.commands.DeleteCommand;
 import me.flibio.jobslite.commands.JobsCommand;
 import me.flibio.jobslite.commands.JoinCommand;
+import me.flibio.jobslite.commands.LeaveCommand;
 import me.flibio.jobslite.commands.SetCommand;
 import me.flibio.jobslite.data.ImmutableJobData;
 import me.flibio.jobslite.data.ImmutableSignJobData;
@@ -190,7 +191,9 @@ public class JobsLite {
                 new CreateCommand(),
                 new DeleteCommand(),
                 new JoinCommand(),
-                new SetCommand());
+                new SetCommand(),
+                new LeaveCommand()
+                );
     }
 
     // Static Methods
