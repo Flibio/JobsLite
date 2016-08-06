@@ -55,7 +55,6 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
-//TODO - Add job option to only allow world-generated blocks
 public class PlayerBlockBreakListener {
 
     private UniqueAccount account;

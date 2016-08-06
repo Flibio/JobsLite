@@ -108,6 +108,25 @@ public class PlayerManager {
     }
 
     /**
+     * Gets the exp required for a player to level up
+     * 
+     * @param player The player
+     * @param job Name of the job
+     * @return The exp required to level up player
+     */
+    public Optional<Double> getExpRequired(Player player, String job) {
+        String expEquation = jobManager.getExpRequiredEquation(job);
+        int curLevel = getCurrentLevel(player, job);
+        Optional<Double> curExp = getCurrentExp(player, job);
+        if (expEquation.isEmpty() || curLevel < 0 || !curExp.isPresent()) {
+            return Optional.empty();
+        }
+        expEquation = expEquation.replaceAll("currentLevel", curLevel + "");
+        double expRequired = NumberUtils.eval(expEquation);
+        return Optional.of(expRequired - curExp.get());
+    }
+
+    /**
      * Sets the players exp for their job
      * 
      * @param player The player

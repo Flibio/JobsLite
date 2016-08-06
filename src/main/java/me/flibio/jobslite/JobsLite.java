@@ -35,6 +35,7 @@ import io.github.flibio.utils.file.ConfigManager;
 import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.commands.CreateCommand;
 import me.flibio.jobslite.commands.DeleteCommand;
+import me.flibio.jobslite.commands.InfoCommand;
 import me.flibio.jobslite.commands.JobsCommand;
 import me.flibio.jobslite.commands.JoinCommand;
 import me.flibio.jobslite.commands.LeaveCommand;
@@ -192,7 +193,8 @@ public class JobsLite {
                 new DeleteCommand(),
                 new JoinCommand(),
                 new SetCommand(),
-                new LeaveCommand()
+                new LeaveCommand(),
+                new InfoCommand()
                 );
     }
 
