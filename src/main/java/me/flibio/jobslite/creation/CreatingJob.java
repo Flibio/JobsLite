@@ -24,12 +24,11 @@
  */
 package me.flibio.jobslite.creation;
 
-import org.spongepowered.api.event.Order;
-
 import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.creation.data.DataType;
 import me.flibio.jobslite.creation.data.DataTypes;
+import me.flibio.jobslite.creation.task.BlockDataTask;
 import me.flibio.jobslite.creation.task.BreakTask;
 import me.flibio.jobslite.creation.task.ColorTask;
 import me.flibio.jobslite.creation.task.FinalTask;
@@ -43,6 +42,7 @@ import me.flibio.jobslite.creation.task.WorldGenTask;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.message.MessageChannelEvent;
 
@@ -67,8 +67,8 @@ public class CreatingJob {
     public CreatingJob(UUID uuid) {
         this.uuid = uuid;
         // Add tasks
-        addTasks(new NameTask(this), new MaxLevelTask(this), new ColorTask(this), new BreakTask(this), new PlaceTask(this), new KillTask(this),
-                new SilkTouchTask(this), new WorldGenTask(this), new FinalTask(this));
+        addTasks(new NameTask(this), new MaxLevelTask(this), new ColorTask(this), new BlockDataTask(this), new BreakTask(this), new PlaceTask(this),
+                new KillTask(this), new SilkTouchTask(this), new WorldGenTask(this), new FinalTask(this));
         // Send cancel message
         for (Player player : Sponge.getServer().getOnlinePlayers()) {
             if (player.getUniqueId().equals(uuid))

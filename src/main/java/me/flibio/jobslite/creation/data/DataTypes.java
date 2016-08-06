@@ -34,6 +34,7 @@ public enum DataTypes {
     PLACE_REWARDS,
     KILL_REWARDS,
     SILK_TOUCH,
-    WORLD_GEN
+    WORLD_GEN,
+    BLOCK_DATA
 
 }

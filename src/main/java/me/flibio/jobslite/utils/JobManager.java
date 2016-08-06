@@ -206,7 +206,7 @@ public class JobManager {
      * @return Boolean based on whether the method was successful or not
      */
     public boolean newJob(String jobName, String displayName, HashMap<BlockState, Reward> blockBreaks, HashMap<BlockState, Reward> blockPlaces,
-            HashMap<EntityType, Reward> mobKills, int maxLevel, TextColor color, boolean silkTouch, boolean worldGen) {
+            HashMap<EntityType, Reward> mobKills, int maxLevel, TextColor color, boolean silkTouch, boolean worldGen, boolean ignoreData) {
         if (jobExists(jobName)) {
             return false;
         } else {
@@ -222,6 +222,7 @@ public class JobManager {
             root.getNode(jobName).getNode("maxLevel").setValue(maxLevel);
             root.getNode(jobName).getNode("silkTouch").setValue(silkTouch);
             root.getNode(jobName).getNode("worldGen").setValue(worldGen);
+            root.getNode(jobName).getNode("ignoreData").setValue(ignoreData);
             // Enter break data
             for (Entry<BlockState, Reward> entry : blockBreaks.entrySet()) {
                 BlockState state = entry.getKey();
@@ -460,7 +461,7 @@ public class JobManager {
      * Gets if the job only allows world generated blocks.
      * 
      * @param jobName The name of the job.
-     * @return If the job disallows silk touch tools.
+     * @return If the job only allows world generated blocks
      */
     public boolean onlyWorldGen(String jobName) {
         if (!jobExists(jobName))
@@ -473,6 +474,25 @@ public class JobManager {
         if (worldGen == null)
             return false;
         return worldGen.getBoolean();
+    }
+
+    /**
+     * Gets if the job ignores block data.
+     * 
+     * @param jobName The name of the job.
+     * @return If the job ignores block data.
+     */
+    public boolean ignoresData(String jobName) {
+        if (!jobExists(jobName))
+            return false;
+        Optional<ConfigurationNode> rOpt = fileManager.getFile("jobsData.conf");
+        if (!rOpt.isPresent())
+            return false;
+        ConfigurationNode root = rOpt.get();
+        ConfigurationNode ignoreData = root.getNode(jobName).getNode("ignoreData");
+        if (ignoreData == null || ignoreData.isVirtual())
+            return false;
+        return ignoreData.getBoolean();
     }
 
     /**

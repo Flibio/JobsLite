@@ -53,7 +53,7 @@ public class FinalTask extends Task {
                 (HashMap<EntityType, Reward>) parent.getData(DataTypes.KILL_REWARDS).getValue(),
                 (Integer) parent.getData(DataTypes.MAX_LEVEL).getValue(),
                 (TextColor) parent.getData(DataTypes.COLOR).getValue(), (Boolean) parent.getData(DataTypes.SILK_TOUCH).getValue(),
-                (Boolean) parent.getData(DataTypes.WORLD_GEN).getValue())) {
+                (Boolean) parent.getData(DataTypes.WORLD_GEN).getValue(), (Boolean) parent.getData(DataTypes.BLOCK_DATA).getValue())) {
             getParent().cancel();
             player.sendMessage(messages.getMessage("creation.success"));
         } else {

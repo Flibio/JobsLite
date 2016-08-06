@@ -75,8 +75,20 @@ public class PlayerPlaceBlockListener {
                         for (Transaction<BlockSnapshot> transaction : event.getTransactions()) {
                             if (transaction.isValid()) {
                                 BlockState blockTransactionState = transaction.getFinal().getState();
-                                if (block.equalsIgnoreCase(blockTransactionState.toString())
-                                        || block.equalsIgnoreCase(blockTransactionState.getType().getName())) {
+                                boolean pass = false;
+                                if (jobManager.ignoresData(job)) {
+                                    // Ignore data
+                                    String newBlock = block.replaceAll("\\[.*?]", "");
+                                    if (newBlock.equalsIgnoreCase(blockTransactionState.getId().replaceAll("\\[.*?]", ""))) {
+                                        pass = true;
+                                    }
+                                } else {
+                                    // Use data
+                                    if (block.equalsIgnoreCase(blockTransactionState.toString())) {
+                                        pass = true;
+                                    }
+                                }
+                                if (pass) {
                                     // Block is a match!
                                     // Get all variables
                                     // Max Level

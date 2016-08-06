@@ -22,34 +22,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package me.flibio.jobslite.commands;
+package me.flibio.jobslite.creation.data;
 
-import io.github.flibio.utils.commands.AsyncCommand;
-import io.github.flibio.utils.commands.BaseCommandExecutor;
-import io.github.flibio.utils.commands.Command;
-import io.github.flibio.utils.message.MessageStorage;
-import me.flibio.jobslite.JobsLite;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.command.spec.CommandSpec.Builder;
-import org.spongepowered.api.entity.living.player.Player;
+public class BlockData extends DataType<Boolean> {
 
-@AsyncCommand
-@Command(aliases = {"jobs"}, permission = "jobs")
-public class JobsCommand extends BaseCommandExecutor<Player> {
-
-    private MessageStorage messageStorage = JobsLite.getMessageStorage();
-
-    @Override
-    public Builder getCommandSpecBuilder() {
-        return CommandSpec.builder()
-                .executor(this)
-                .description(messageStorage.getMessage("command.jobs.description"));
+    public BlockData(Boolean value) {
+        super(value);
     }
 
     @Override
-    public void run(Player src, CommandContext args) {
-        src.sendMessage(messageStorage.getMessage("command.usage", "command", "/jobs", "subcommands", "create | delete | join | leave | info | set"));
+    public DataTypes getType() {
+        return DataTypes.BLOCK_DATA;
     }
 
 }
