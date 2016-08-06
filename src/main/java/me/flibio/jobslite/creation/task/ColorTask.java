@@ -24,19 +24,20 @@
  */
 package me.flibio.jobslite.creation.task;
 
-import org.spongepowered.api.text.Text;
-
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.creation.CreatingJob;
 import me.flibio.jobslite.creation.data.ColorData;
+import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.filter.cause.First;
-import org.spongepowered.api.event.message.MessageChannelEvent;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColor;
+import org.spongepowered.api.text.format.TextColors;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class ColorTask extends Task {
 
@@ -46,28 +47,100 @@ public class ColorTask extends Task {
 
     public void initialize() {
         Sponge.getEventManager().registerListeners(JobsLite.getInstance(), this);
-        getPlayer().sendMessage(messages.getMessage("creation.choosecolor"));
+        colorChoices();
     }
 
-    @Listener
-    public void onPlayerChat(MessageChannelEvent.Chat event, @First Player player) {
-        String message = event.getRawMessage().toPlain();
-        if (player.getUniqueId().equals(getParent().getUUID())) {
-            // Verify the data
-            Optional<TextColor> cOpt = Sponge.getRegistry().getType(TextColor.class, message.trim().replaceAll(" ", "_"));
-            if (cOpt.isPresent()) {
-                // Set the data
-                getParent().setData(new ColorData(cOpt.get()));
-                // Send confirmation
-                player.sendMessage(messages.getMessage("creation.setcolor", "color", Text.of(cOpt.get(), message)));
-                // Move to the next task
-                getParent().nextTask();
-                // Remove the listener
-                Sponge.getEventManager().unregisterListeners(this);
-            } else {
-                player.sendMessage(messages.getMessage("creation.invalidcolor"));
-            }
-            event.setCancelled(true);
+    private void colorChoices() {
+        ArrayList<TextColor> colors1 =
+                new ArrayList<TextColor>(Arrays.asList(TextColors.AQUA, TextColors.BLACK, TextColors.BLUE, TextColors.DARK_AQUA));
+        Text msg1 = Text.builder().build();
+        for (TextColor currentColor : colors1) {
+            msg1 = msg1.toBuilder().append(Text.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {
+
+                @Override
+                public void accept(CommandSource source) {
+                    if (getParent().isCancelled())
+                        return;
+                    // Set the data
+                    getParent().setData(new ColorData(currentColor));
+                    // Send confirmation
+                    source.sendMessage(messages.getMessage("creation.setcolor", "color", Text.of(currentColor, currentColor.getName())));
+                    // Move to the next task
+                    getParent().nextTask();
+                    // Remove the listeer
+                    Sponge.getEventManager().unregisterListeners(this);
+                }
+            }, currentColor, currentColor.getName())).build();
         }
+        ArrayList<TextColor> colors2 =
+                new ArrayList<TextColor>(Arrays.asList(TextColors.DARK_BLUE, TextColors.DARK_GRAY, TextColors.DARK_GREEN, TextColors.DARK_PURPLE));
+        Text msg2 = Text.builder().build();
+        for (TextColor currentColor : colors2) {
+            msg2 = msg2.toBuilder().append(Text.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {
+
+                @Override
+                public void accept(CommandSource source) {
+                    if (getParent().isCancelled())
+                        return;
+                    // Set the data
+                    getParent().setData(new ColorData(currentColor));
+                    // Send confirmation
+                    source.sendMessage(messages.getMessage("creation.setcolor", "color", Text.of(currentColor, currentColor.getName())));
+                    // Move to the next task
+                    getParent().nextTask();
+                    // Remove the listeer
+                    Sponge.getEventManager().unregisterListeners(this);
+                }
+            }, currentColor, currentColor.getName())).build();
+        }
+        ArrayList<TextColor> colors3 =
+                new ArrayList<TextColor>(Arrays.asList(TextColors.DARK_RED, TextColors.GOLD, TextColors.GRAY, TextColors.GREEN));
+        Text msg3 = Text.builder().build();
+        for (TextColor currentColor : colors3) {
+            msg3 = msg3.toBuilder().append(Text.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {
+
+                @Override
+                public void accept(CommandSource source) {
+                    if (getParent().isCancelled())
+                        return;
+                    // Set the data
+                    getParent().setData(new ColorData(currentColor));
+                    // Send confirmation
+                    source.sendMessage(messages.getMessage("creation.setcolor", "color", Text.of(currentColor, currentColor.getName())));
+                    // Move to the next task
+                    getParent().nextTask();
+                    // Remove the listeer
+                    Sponge.getEventManager().unregisterListeners(this);
+                }
+            }, currentColor, currentColor.getName())).build();
+        }
+        ArrayList<TextColor> colors4 =
+                new ArrayList<TextColor>(Arrays.asList(TextColors.LIGHT_PURPLE, TextColors.RED, TextColors.WHITE, TextColors.YELLOW));
+        Text msg4 = Text.builder().build();
+        for (TextColor currentColor : colors4) {
+            msg4 = msg4.toBuilder().append(Text.builder(" ").build(), TextUtils.option(new Consumer<CommandSource>() {
+
+                @Override
+                public void accept(CommandSource source) {
+                    if (getParent().isCancelled())
+                        return;
+                    // Set the data
+                    getParent().setData(new ColorData(currentColor));
+                    // Send confirmation
+                    source.sendMessage(messages.getMessage("creation.setcolor", "color", Text.of(currentColor, currentColor.getName())));
+                    // Move to the next task
+                    getParent().nextTask();
+                    // Remove the listeer
+                    Sponge.getEventManager().unregisterListeners(this);
+                }
+            }, currentColor, currentColor.getName())).build();
+        }
+        Player player = getPlayer();
+        player.sendMessage(messages.getMessage("creation.choosecolor"));
+        player.sendMessage(msg1);
+        player.sendMessage(msg2);
+        player.sendMessage(msg3);
+        player.sendMessage(msg4);
     }
+
 }

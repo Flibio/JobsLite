@@ -99,6 +99,10 @@ public class CreatingJob {
         });
     }
 
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
     public void nextTask() {
         if (!cancelled) {
             // Make sure a next task exists
