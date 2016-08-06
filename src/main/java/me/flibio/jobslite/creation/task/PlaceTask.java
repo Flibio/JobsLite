@@ -143,7 +143,7 @@ public class PlaceTask extends Task {
                 Optional<Double> dOpt = verifyDouble(message);
                 if (dOpt.isPresent()) {
                     exp = dOpt.get();
-                    player.sendMessage(messages.getMessage("creation.placebase", "amount", currency + " currency", "block", blockState.getName()));
+                    player.sendMessage(messages.getMessage("creation.placebase", "amount", exp + " experience", "block", blockState.getName()));
                     state = State.SELECTION;
                     // Save the block
                     rewards.put(blockState, new Reward(currency, exp));

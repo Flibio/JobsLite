@@ -97,7 +97,7 @@ public class PlayerPlaceBlockListener {
                                         return;
                                     // Base currency reward
                                     Optional<Double> baseCurrencyReward = jobManager.getCurrencyReward(job, block, ActionType.PLACE);
-                                    if (baseCurrencyReward.isPresent())
+                                    if (!baseCurrencyReward.isPresent())
                                         return;
                                     // Get the equations
                                     String rewardEquation = jobManager.getRewardEquation(job);
