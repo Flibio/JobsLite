@@ -26,6 +26,7 @@ package me.flibio.jobslite.objects;
 
 import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
+import me.flibio.jobslite.creation.data.Reward;
 import me.flibio.jobslite.utils.JobManager;
 import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.block.BlockState;
@@ -72,8 +73,8 @@ public class CreatingJob {
     private String displayName = "";
     private boolean silkTouch = true;
     private boolean worldGen = false;
-    private HashMap<BlockState, HashMap<String, Double>> blockBreaks = new HashMap<>();
-    private HashMap<BlockState, HashMap<String, Double>> blockPlaces = new HashMap<>();
+    private HashMap<BlockState, Reward> blockBreaks = new HashMap<>();
+    private HashMap<BlockState, Reward> blockPlaces = new HashMap<>();
     private BlockState currentBlock;
     private double currentAmount;
     private int maxLevel = 100;
@@ -84,15 +85,15 @@ public class CreatingJob {
 
     public CreatingJob(Player player) {
         this.player = player;
-        jobManager = JobsLite.access.jobManager;
-        messageStorage = JobsLite.access.messageStorage;
+        jobManager = JobsLite.getJobManager();
+        messageStorage = JobsLite.getMessageStorage();
 
         player.sendMessage(messageStorage.getMessage("creation.cancel"));
         player.sendMessage(TextUtils.line());
         player.sendMessage(messageStorage.getMessage("creation.jobname"));
         currentTask = CurrentTask.JOB_NAME;
 
-        JobsLite.access.game.getEventManager().registerListeners(JobsLite.access, this);
+        JobsLite.getInstance().game.getEventManager().registerListeners(JobsLite.getInstance(), this);
     }
 
     @Listener
@@ -223,10 +224,7 @@ public class CreatingJob {
                 player.sendMessage(messageStorage.getMessage("creation.breakbase", "amount", currentAmount + " exp", "block", currentBlock.toString()));
                 player.sendMessage(TextUtils.line());
                 // Add the block
-                HashMap<String, Double> data = new HashMap<>();
-                data.put("currency", currentAmount);
-                data.put("exp", exp);
-                blockBreaks.put(currentBlock, data);
+                blockBreaks.put(currentBlock, new Reward(currentAmount, exp));
                 currentAmount = 0;
                 currentBlock = null;
                 // Ask if they want more
@@ -252,10 +250,7 @@ public class CreatingJob {
                 player.sendMessage(messageStorage.getMessage("creation.placebase", "amount", currentAmount + " exp", "block", currentBlock.toString()));
                 player.sendMessage(TextUtils.line());
                 // Add the block
-                HashMap<String, Double> data = new HashMap<>();
-                data.put("currency", currentAmount);
-                data.put("exp", exp);
-                blockPlaces.put(currentBlock, data);
+                blockPlaces.put(currentBlock, new Reward(currentAmount, exp));
                 currentAmount = 0;
                 currentBlock = null;
                 // Ask if they want more
@@ -534,7 +529,7 @@ public class CreatingJob {
 
     private void complete() {
         currentTask = CurrentTask.COMPLETE;
-        if (jobManager.newJob(name, displayName, blockBreaks, blockPlaces, maxLevel, color, silkTouch, worldGen)) {
+        if (jobManager.newJob(name, displayName, blockBreaks, blockPlaces, new HashMap<>(), maxLevel, color, silkTouch, worldGen, false)) {
             player.sendMessage(messageStorage.getMessage("creation.success"));
         } else {
             player.sendMessage(messageStorage.getMessage("creation.fail"));

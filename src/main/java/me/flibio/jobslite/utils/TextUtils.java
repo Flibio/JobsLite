@@ -97,4 +97,8 @@ public class TextUtils {
         return text;
     }
 
+    public static Text line() {
+        return Text.of();
+    }
+
 }

@@ -24,16 +24,21 @@
  */
 package me.flibio.jobslite.data;
 
+import static com.google.common.reflect.TypeToken.of;
 import static org.spongepowered.api.data.DataQuery.of;
 import static org.spongepowered.api.data.key.KeyFactory.makeSingleKey;
 
+
+import com.google.common.reflect.TypeToken;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.value.mutable.Value;
 
 public class LiteKeys {
 
-    public static final Key<Value<String>> JOB_NAME = makeSingleKey(String.class, Value.class, of("JobName"));
-    public static final Key<Value<Integer>> LEVEL = makeSingleKey(Integer.class, Value.class, of("Level"));
-    public static final Key<Value<Integer>> EXP = makeSingleKey(Integer.class, Value.class, of("Exp"));
+    public static final Key<Value<String>> JOB_NAME = makeSingleKey(of(String.class), new TypeToken<Value<String>>() {}, of("JobName"), "jobs_name",
+            "JobsName");
+    public static final Key<Value<Integer>> LEVEL = makeSingleKey(of(Integer.class), new TypeToken<Value<Integer>>() {}, of("Level"), "level",
+            "Level");
+    public static final Key<Value<Integer>> EXP = makeSingleKey(of(Integer.class), new TypeToken<Value<Integer>>() {}, of("Exp"), "exp", "Exp");
 
 }
