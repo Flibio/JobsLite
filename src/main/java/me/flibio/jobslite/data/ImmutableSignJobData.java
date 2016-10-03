@@ -35,7 +35,7 @@ import com.google.common.collect.ComparisonChain;
 
 import java.util.Optional;
 
-public class ImmutableSignJobData extends AbstractImmutableData<ImmutableSignJobData, SignJobData> {
+public class ImmutableSignJobData extends AbstractImmutableData<ImmutableSignJobData, SignJobData> implements Comparable<ImmutableSignJobData> {
 
     private String jobName;
 

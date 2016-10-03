@@ -24,20 +24,18 @@
  */
 package me.flibio.jobslite.data;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.ComparisonChain;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataHolder;
-import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.manipulator.mutable.common.AbstractData;
 import org.spongepowered.api.data.merge.MergeFunction;
 import org.spongepowered.api.data.value.mutable.Value;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.ComparisonChain;
-
 import java.util.Optional;
 
-public class SignJobData extends AbstractData<SignJobData, ImmutableSignJobData> implements DataSerializable {
+public class SignJobData extends AbstractData<SignJobData, ImmutableSignJobData> implements Comparable<SignJobData> {
 
     private String jobName;
 
