@@ -35,10 +35,10 @@ import org.spongepowered.api.data.value.mutable.Value;
 
 public class LiteKeys {
 
-    public static final Key<Value<String>> JOB_NAME = makeSingleKey(of(String.class), new TypeToken<Value<String>>() {}, of("JobName"), "job_name",
+    public static final Key<Value<String>> JOB_NAME = makeSingleKey(of(String.class), new TypeToken<Value<String>>() {}, of("JobName"), "jobslite:job_name",
             "JobName");
-    public static final Key<Value<Integer>> LEVEL = makeSingleKey(of(Integer.class), new TypeToken<Value<Integer>>() {}, of("Level"), "level",
+    public static final Key<Value<Integer>> LEVEL = makeSingleKey(of(Integer.class), new TypeToken<Value<Integer>>() {}, of("Level"), "jobslite:level",
             "Level");
-    public static final Key<Value<Integer>> EXP = makeSingleKey(of(Integer.class), new TypeToken<Value<Integer>>() {}, of("Exp"), "exp", "Exp");
+    public static final Key<Value<Integer>> EXP = makeSingleKey(of(Integer.class), new TypeToken<Value<Integer>>() {}, of("Exp"), "jobslite:exp", "Exp");
 
 }

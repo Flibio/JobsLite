@@ -11,7 +11,7 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 group 'me.flibio'
-version '1.6.2'
+version '1.6.3'
 
 defaultTasks 'licenseFormat', 'clean', 'build'
 
