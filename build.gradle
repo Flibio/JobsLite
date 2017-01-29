@@ -35,6 +35,9 @@ dependencies {
 }
 
 shadowJar {
+    def bVer = System.getenv("BUILD_NUMBER") ?: version
+    archiveName = "JobsLite-${project.apiVersion.minus("-SNAPSHOT")}-${bVer}.jar"
+
     dependencies {
         include dependency('com.github.flibiostudio:utils')
     }
