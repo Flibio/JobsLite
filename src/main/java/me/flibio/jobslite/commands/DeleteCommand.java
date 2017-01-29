@@ -1,7 +1,7 @@
 /*
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2015 - 2016 Flibio
+ * Copyright (c) 2015 - 2017 Flibio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -30,7 +30,8 @@ import io.github.flibio.utils.commands.Command;
 import io.github.flibio.utils.commands.ParentCommand;
 import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
-import me.flibio.jobslite.utils.JobManager;
+import me.flibio.jobslite.api.Job;
+import me.flibio.jobslite.api.JobManager;
 import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -58,39 +59,34 @@ public class DeleteCommand extends BaseCommandExecutor<Player> {
     @Override
     public void run(Player player, CommandContext args) {
         player.sendMessage(messageStorage.getMessage("command.delete.select"));
-        for (String job : jobManager.getJobs()) {
-            if (jobManager.jobExists(job)) {
-                String displayName = jobManager.getDisplayName(job);
-                if (!displayName.isEmpty()) {
-                    player.sendMessage(TextUtils.option(new Consumer<CommandSource>() {
+        for (Job job : jobManager.getJobs()) {
+            String displayName = job.getDisplayName();
+            if (!displayName.isEmpty()) {
+                player.sendMessage(TextUtils.option(new Consumer<CommandSource>() {
 
-                        @Override
-                        public void accept(CommandSource source) {
-                            player.sendMessage(messageStorage.getMessage("command.delete.confirm", "job", displayName));
-                            player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
+                    @Override
+                    public void accept(CommandSource source) {
+                        player.sendMessage(messageStorage.getMessage("command.delete.confirm", "job", displayName));
+                        player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
-                                @Override
-                                public void accept(CommandSource source) {
-                                    if (!jobManager.deleteJob(job)) {
-                                        player.sendMessage(messageStorage.getMessage("generic.error"));
-                                        return;
-                                    }
-                                    player.sendMessage(messageStorage.getMessage("command.delete.success", "job", displayName));
-                                }
+                            @Override
+                            public void accept(CommandSource source) {
+                                jobManager.deleteJob(job.getId());
+                                player.sendMessage(messageStorage.getMessage("command.delete.success", "job", displayName));
+                            }
 
-                            }));
-                            player.sendMessage(TextUtils.noOption(new Consumer<CommandSource>() {
+                        }));
+                        player.sendMessage(TextUtils.noOption(new Consumer<CommandSource>() {
 
-                                @Override
-                                public void accept(CommandSource source) {
-                                    player.sendMessage(messageStorage.getMessage("command.delete.cancelled"));
-                                }
+                            @Override
+                            public void accept(CommandSource source) {
+                                player.sendMessage(messageStorage.getMessage("command.delete.cancelled"));
+                            }
 
-                            }));
-                        }
+                        }));
+                    }
 
-                    }, jobManager.getColor(job), displayName));
-                }
+                }, job.getTextColor(), displayName));
             }
         }
     }

@@ -1,7 +1,7 @@
 /*
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2015 - 2016 Flibio
+ * Copyright (c) 2015 - 2017 Flibio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -31,35 +31,40 @@ import static me.flibio.jobslite.PluginInfo.VERSION;
 
 import com.google.inject.Inject;
 import io.github.flibio.utils.commands.CommandLoader;
-import io.github.flibio.utils.file.ConfigManager;
+import io.github.flibio.utils.file.FileManager;
 import io.github.flibio.utils.message.MessageStorage;
+import me.flibio.jobslite.api.JobManager;
+import me.flibio.jobslite.api.PlayerManager;
+import me.flibio.jobslite.bstats.Metrics;
+import me.flibio.jobslite.commands.AddCommand;
 import me.flibio.jobslite.commands.CreateCommand;
 import me.flibio.jobslite.commands.DeleteCommand;
 import me.flibio.jobslite.commands.InfoCommand;
 import me.flibio.jobslite.commands.JobsCommand;
 import me.flibio.jobslite.commands.JoinCommand;
 import me.flibio.jobslite.commands.LeaveCommand;
-import me.flibio.jobslite.commands.SetCommand;
+import me.flibio.jobslite.commands.RemoveCommand;
 import me.flibio.jobslite.data.ImmutableJobData;
 import me.flibio.jobslite.data.ImmutableSignJobData;
 import me.flibio.jobslite.data.JobData;
 import me.flibio.jobslite.data.JobDataManipulatorBuilder;
 import me.flibio.jobslite.data.SignJobData;
 import me.flibio.jobslite.data.SignJobDataManipulatorBuilder;
+import me.flibio.jobslite.impl.LocalJobManager;
+import me.flibio.jobslite.impl.LocalPlayerManager;
+import me.flibio.jobslite.impl.RemoteJobManager;
+import me.flibio.jobslite.impl.RemotePlayerManager;
 import me.flibio.jobslite.listeners.MobDeathListener;
 import me.flibio.jobslite.listeners.PlayerBlockBreakListener;
-import me.flibio.jobslite.listeners.PlayerChatListener;
 import me.flibio.jobslite.listeners.PlayerJoinListener;
 import me.flibio.jobslite.listeners.PlayerPlaceBlockListener;
 import me.flibio.jobslite.listeners.SignListeners;
-import me.flibio.jobslite.utils.JobManager;
-import me.flibio.jobslite.utils.PlayerManager;
-import me.flibio.updatifier.Updatifier;
-import net.minecrell.mcstats.SpongeStatsLite;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
@@ -69,33 +74,37 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @SuppressWarnings("deprecation")
-@Updatifier(repoName = "JobsLite", repoOwner = "Flibio", version = "v" + VERSION)
 @Plugin(id = ID, name = NAME, version = VERSION, dependencies = {}, description = DESCRIPTION)
 public class JobsLite {
 
     private static JobsLite instance;
 
+    @Inject @ConfigDir(sharedRoot = false) Path configDir;
+
+    @SuppressWarnings("unused") @Inject private Metrics metrics;
+
     @Inject public Logger logger;
 
     @Inject public Game game;
 
-    @Inject private SpongeStatsLite statsLite;
-
     public String version = JobsLite.class.getAnnotation(Plugin.class).version();
 
-    private static ConfigManager configManager;
+    private static FileManager fileManager;
     private static JobManager jobManager;
     private static PlayerManager playerManager;
     private static EconomyService economyService;
     private static MessageStorage messageStorage;
-
-    private static HashMap<String, String> configOptions = new HashMap<String, String>();
+    public static List<UUID> msgCache = new ArrayList<>();
 
     private boolean foundProvider = false;
     private boolean late = false;
@@ -107,20 +116,41 @@ public class JobsLite {
         Sponge.getDataManager().register(JobData.class, ImmutableJobData.class, new JobDataManipulatorBuilder());
         Sponge.getDataManager().register(SignJobData.class, ImmutableSignJobData.class, new SignJobDataManipulatorBuilder());
         // Initialze basic plugin managers needed for further initialization
-        configManager = ConfigManager.createInstance(this).get();
-        jobManager = new JobManager();
-        playerManager = new PlayerManager();
+        if (new File(configDir.toString()).isAbsolute()) {
+            fileManager = FileManager.createInstance(this, configDir.toString());
+        } else {
+            fileManager = FileManager.createInstance(this, "./" + configDir.toString());
+        }
 
-        messageStorage = MessageStorage.createInstance(this);
+        messageStorage = MessageStorage.createInstance(this, configDir.toString());
         messageStorage.defaultMessages("jobslitemessages");
     }
 
     @Listener
     public void onServerInitialize(GameInitializationEvent event) {
         logger.info("JobsLite " + version + " by Flibio initializing!");
-        this.statsLite.start();
         initializeFiles();
-        loadConfigurationOptions();
+        // Initialize the player and job managers
+        boolean flatfile = true;
+        if (optionEnabled("mysql.enabled")) {
+            // Load the remote managers
+            RemotePlayerManager tempPlayerManager =
+                    new RemotePlayerManager(getOption("mysql.hostname"), getOption("mysql.port"), getOption("mysql.database"),
+                            getOption("mysql.username"), getOption("mysql.password"));
+            RemoteJobManager tempJobManager =
+                    new RemoteJobManager(getOption("mysql.hostname"), getOption("mysql.port"), getOption("mysql.database"),
+                            getOption("mysql.username"), getOption("mysql.password"));
+            if (tempPlayerManager.isWorking() && tempJobManager.isWorking()) {
+                playerManager = tempPlayerManager;
+                jobManager = tempJobManager;
+                flatfile = false;
+            }
+        }
+        if (flatfile) {
+            // Load the local managers
+            playerManager = new LocalPlayerManager();
+            jobManager = new LocalJobManager();
+        }
     }
 
     @Listener
@@ -155,8 +185,14 @@ public class JobsLite {
         }
     }
 
+    @Listener
+    public void reload(GameReloadEvent event) {
+        // Force a reload of the configuration file
+        fileManager.reloadFile("config.conf");
+        messageStorage.reloadMessages();
+    }
+
     private void registerEvents() {
-        game.getEventManager().registerListeners(this, new PlayerChatListener());
         game.getEventManager().registerListeners(this, new PlayerJoinListener());
         game.getEventManager().registerListeners(this, new PlayerBlockBreakListener());
         game.getEventManager().registerListeners(this, new PlayerPlaceBlockListener());
@@ -165,25 +201,14 @@ public class JobsLite {
     }
 
     private void initializeFiles() {
-        configManager.setDefault("config.conf", "Display-Level", String.class, "enabled");
-        configManager.setDefault("config.conf", "Chat-Prefixes", String.class, "enabled");
-
-        configManager.getFile("playerjobdata.conf");
-    }
-
-    private static void loadConfigurationOptions() {
-        Optional<String> lOpt = configManager.getValue("config.conf", "Display-Level", String.class);
-        Optional<String> pOpt = configManager.getValue("config.conf", "Chat-Prefixes", String.class);
-        if (!lOpt.isPresent()) {
-            configOptions.put("displayLevel", "enabled");
-        } else {
-            configOptions.put("displayLevel", lOpt.get());
-        }
-        if (!pOpt.isPresent()) {
-            configOptions.put("chatPrefixes", "enabled");
-        } else {
-            configOptions.put("chatPrefixes", pOpt.get());
-        }
+        fileManager.setDefault("config.conf", "max-jobs", Integer.class, 1);
+        fileManager.setDefault("config.conf", "virtual-draw", String.class, "none");
+        fileManager.setDefault("config.conf", "mysql.enabled", Boolean.class, false);
+        fileManager.setDefault("config.conf", "mysql.hostname", String.class, "host");
+        fileManager.setDefault("config.conf", "mysql.port", Integer.class, 3306);
+        fileManager.setDefault("config.conf", "mysql.database", String.class, "database");
+        fileManager.setDefault("config.conf", "mysql.username", String.class, "username");
+        fileManager.setDefault("config.conf", "mysql.password", String.class, "password");
     }
 
     private void registerCommands() {
@@ -192,7 +217,8 @@ public class JobsLite {
                 new CreateCommand(),
                 new DeleteCommand(),
                 new JoinCommand(),
-                new SetCommand(),
+                new AddCommand(),
+                new RemoveCommand(),
                 new LeaveCommand(),
                 new InfoCommand()
                 );
@@ -204,8 +230,8 @@ public class JobsLite {
         return instance;
     }
 
-    public static ConfigManager getConfigManager() {
-        return configManager;
+    public static FileManager getFileManager() {
+        return fileManager;
     }
 
     public static JobManager getJobManager() {
@@ -233,19 +259,15 @@ public class JobsLite {
     }
 
     public static boolean optionEnabled(String optionName) {
-        loadConfigurationOptions();
-        if (configOptions.get(optionName).equalsIgnoreCase("enabled")) {
-            return true;
-        } else {
-            return false;
+        Optional<String> value = fileManager.getValue("config.conf", optionName, String.class);
+        if (value.isPresent()) {
+            return value.get().equalsIgnoreCase("enabled") || value.get().equalsIgnoreCase("true");
         }
+        return false;
     }
 
     public static String getOption(String optionName) {
-        loadConfigurationOptions();
-        if (!configOptions.containsKey(optionName))
-            return "";
-        return configOptions.get(optionName);
+        Optional<String> value = fileManager.getValue("config.conf", optionName, String.class);
+        return value.isPresent() ? value.get() : "";
     }
-
 }

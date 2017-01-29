@@ -36,9 +36,12 @@ import me.flibio.jobslite.api.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.text.Text;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -46,8 +49,8 @@ import java.util.function.Consumer;
 
 @AsyncCommand
 @ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"leave", "quit", "exit"}, permission = "jobs.user.leave")
-public class LeaveCommand extends BaseCommandExecutor<Player> {
+@Command(aliases = {"remove"}, permission = "jobs.admin.remove")
+public class RemoveCommand extends BaseCommandExecutor<Player> {
 
     private PlayerManager playerManager = JobsLite.getPlayerManager();
     private JobManager jobManager = JobsLite.getJobManager();
@@ -57,39 +60,47 @@ public class LeaveCommand extends BaseCommandExecutor<Player> {
     public Builder getCommandSpecBuilder() {
         return CommandSpec.builder()
                 .executor(this)
-                .description(messageStorage.getMessage("command.leave.description"));
+                .arguments(GenericArguments.user(Text.of("player")))
+                .description(messageStorage.getMessage("command.remove.description"));
     }
 
     @Override
     public void run(Player player, CommandContext args) {
-        UUID uuid = player.getUniqueId();
-        player.sendMessage(messageStorage.getMessage("command.leave.warn"));
-        for (String jobId : playerManager.getCurrentJobs(uuid)) {
-            Optional<Job> jOpt = jobManager.getJob(jobId);
-            if (jOpt.isPresent()) {
-                Job job = jOpt.get();
-                player.sendMessage(TextUtils.option(new Consumer<CommandSource>() {
+        Optional<User> target = args.<User>getOne("player");
+        if (target.isPresent()) {
+            User user = target.get();
+            String playerName = user.getName();
+            UUID uuid = user.getUniqueId();
+            player.sendMessage(messageStorage.getMessage("command.remove.warn", "player", playerName));
+            for (String jobId : playerManager.getCurrentJobs(uuid)) {
+                Optional<Job> jOpt = jobManager.getJob(jobId);
+                if (jOpt.isPresent()) {
+                    Job job = jOpt.get();
+                    player.sendMessage(TextUtils.option(new Consumer<CommandSource>() {
 
-                    @Override
-                    public void accept(CommandSource source) {
-                        player.sendMessage(messageStorage.getMessage("command.leave.confirm", "job", job.getDisplayName()));
-                        player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
+                        @Override
+                        public void accept(CommandSource source) {
+                            player.sendMessage(messageStorage.getMessage("command.remove.confirm", "job", job.getDisplayName(), "player", playerName));
+                            player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
-                            @Override
-                            public void accept(CommandSource source) {
-                                if (!playerManager.removeJob(uuid, job.getId())) {
-                                    player.sendMessage(messageStorage.getMessage("generic.error"));
-                                    return;
+                                @Override
+                                public void accept(CommandSource source) {
+                                    if (!playerManager.removeJob(uuid, job.getId())) {
+                                        player.sendMessage(messageStorage.getMessage("generic.error"));
+                                        return;
+                                    }
+                                    player.sendMessage(messageStorage.getMessage("command.remove.success", "player", playerName, "job",
+                                            job.getDisplayName()));
                                 }
-                                player.sendMessage(messageStorage.getMessage("command.leave.success", "job", job.getDisplayName()));
-                            }
 
-                        }));
-                    }
+                            }));
+                        }
 
-                }, job.getTextColor(), job.getDisplayName()));
+                    }, job.getTextColor(), job.getDisplayName()));
+                }
             }
+        } else {
+            player.sendMessage(messageStorage.getMessage("generic.error"));
         }
     }
-
 }

@@ -11,7 +11,7 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 group 'me.flibio'
-version '1.6.3'
+version '1.7.0'
 
 defaultTasks 'licenseFormat', 'clean', 'build'
 
@@ -30,21 +30,15 @@ repositories {
 }
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:5.0.0-SNAPSHOT'
-    compile 'com.github.flibio:updatifier:v1.4.0:api'
-    compile 'net.minecrell.mcstats:statslite-sponge:0.2.2'
-    compile 'com.github.flibiostudio:utils:5e12591'
+    compile 'org.spongepowered:spongeapi:${project.apiVersion}'
+    compile 'com.github.flibiostudio:utils:1.9.0'
 }
 
 shadowJar {
     dependencies {
-        include dependency('net.minecrell.mcstats:statslite-sponge')
-        include dependency('com.github.flibio:updatifier')
         include dependency('com.github.flibiostudio:utils')
     }
     
-    relocate 'me.flibio.updatifier', 'me.flibio.jobslite.updatifier'
-    relocate 'net.minecrell.mcstats', 'me.flibio.jobslite.mcstats'
     relocate 'io.github.flibio.utils', 'me.flibio.jobslite.eutils'
 }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2015 - 2016 Flibio
+ * Copyright (c) 2015 - 2017 Flibio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,14 +24,16 @@
  */
 package me.flibio.jobslite.commands;
 
+import me.flibio.jobslite.api.Job;
+
 import io.github.flibio.utils.commands.AsyncCommand;
 import io.github.flibio.utils.commands.BaseCommandExecutor;
 import io.github.flibio.utils.commands.Command;
 import io.github.flibio.utils.commands.ParentCommand;
 import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
-import me.flibio.jobslite.utils.JobManager;
-import me.flibio.jobslite.utils.PlayerManager;
+import me.flibio.jobslite.api.JobManager;
+import me.flibio.jobslite.api.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
@@ -44,13 +46,15 @@ import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 @AsyncCommand
 @ParentCommand(parentCommand = JobsCommand.class)
-@Command(aliases = {"set"}, permission = "jobs.admin.set")
-public class SetCommand extends BaseCommandExecutor<Player> {
+@Command(aliases = {"add"}, permission = "jobs.admin.add")
+public class AddCommand extends BaseCommandExecutor<Player> {
 
     private PlayerManager playerManager = JobsLite.getPlayerManager();
     private JobManager jobManager = JobsLite.getJobManager();
@@ -61,7 +65,7 @@ public class SetCommand extends BaseCommandExecutor<Player> {
         return CommandSpec.builder()
                 .executor(this)
                 .arguments(GenericArguments.string(Text.of("player")))
-                .description(messageStorage.getMessage("command.set.description"));
+                .description(messageStorage.getMessage("command.add.description"));
     }
 
     @Override
@@ -80,46 +84,43 @@ public class SetCommand extends BaseCommandExecutor<Player> {
                         return;
                     }
                     Player targetPlayer = pOpt.get();
-                    // Check if the target player exists
-                    if (playerManager.playerExists(targetPlayer)) {
-                        // Send a list of jobs to the player
-                        player.sendMessage(messageStorage.getMessage("command.set.select", "player", targetName));
-                        for (String job : jobManager.getJobs()) {
-                            if (jobManager.jobExists(job)) {
-                                String displayName = jobManager.getDisplayName(job);
-                                if (!displayName.isEmpty()) {
-                                    player.sendMessage(TextUtils.option(new Consumer<CommandSource>() {
+                    String playerName = targetPlayer.getName();
+                    UUID uuid = targetPlayer.getUniqueId();
+                    List<String> curJobs = playerManager.getCurrentJobs(uuid);
+                    if (curJobs.size() >= Integer.parseInt(JobsLite.getOption("max-jobs"))) {
+                        player.sendMessage(messageStorage.getMessage("command.add.toomany", "player", playerName));
+                        return;
+                    }
+                    player.sendMessage(messageStorage.getMessage("command.add.select", "player", playerName));
+                    for (Job job : jobManager.getJobs()) {
+                        String displayName = job.getDisplayName();
+                        player.sendMessage(TextUtils.option(new Consumer<CommandSource>() {
 
-                                        @Override
-                                        public void accept(CommandSource source) {
-                                            if (playerManager.getCurrentJob(targetPlayer).equalsIgnoreCase(job)) {
-                                                player.sendMessage(messageStorage.getMessage("command.set.already", "player", targetName, "job",
-                                                        displayName));
-                                                return;
-                                            }
-                                            player.sendMessage(messageStorage.getMessage("command.set.confirm", "player", targetName, "job",
-                                                    displayName));
-                                            player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
-
-                                                @Override
-                                                public void accept(CommandSource source) {
-                                                    if (!playerManager.setJob(targetPlayer, job)) {
-                                                        player.sendMessage(messageStorage.getMessage("generic.error"));
-                                                    } else {
-                                                        player.sendMessage(messageStorage.getMessage("command.set.success", "player", targetName,
-                                                                "job", displayName));
-                                                    }
-                                                }
-
-                                            }));
-                                        }
-
-                                    }, jobManager.getColor(job), displayName));
+                            @Override
+                            public void accept(CommandSource source) {
+                                if (curJobs.contains(job.getId())) {
+                                    player.sendMessage(messageStorage.getMessage("command.add.already", "job", job.getDisplayName(), "player",
+                                            playerName));
+                                    return;
                                 }
+                                player.sendMessage(messageStorage.getMessage("command.add.confirm", "job", job.getDisplayName(), "player",
+                                        playerName));
+                                player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
+
+                                    @Override
+                                    public void accept(CommandSource source) {
+                                        if (!playerManager.addJob(uuid, job.getId())) {
+                                            player.sendMessage(messageStorage.getMessage("generic.error"));
+                                            return;
+                                        }
+                                        player.sendMessage(messageStorage.getMessage("command.add.success", "job", job.getDisplayName(), "player",
+                                                playerName));
+                                    }
+
+                                }));
                             }
-                        }
-                    } else {
-                        player.sendMessage(messageStorage.getMessage("generic.error"));
+
+                        }, job.getTextColor(), displayName));
                     }
                 } else {
                     player.sendMessage(messageStorage.getMessage("generic.error"));
@@ -131,5 +132,4 @@ public class SetCommand extends BaseCommandExecutor<Player> {
             player.sendMessage(messageStorage.getMessage("command.usage", "command", "/jobs", "subcommands", "set <player>"));
         }
     }
-
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2015 - 2016 Flibio
+ * Copyright (c) 2015 - 2017 Flibio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,10 +24,11 @@
  */
 package me.flibio.jobslite.creation.task;
 
+import me.flibio.jobslite.api.Reward;
+
 import me.flibio.jobslite.JobsLite;
 import me.flibio.jobslite.creation.CreatingJob;
 import me.flibio.jobslite.creation.data.BreakData;
-import me.flibio.jobslite.creation.data.Reward;
 import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;

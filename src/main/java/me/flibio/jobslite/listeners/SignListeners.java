@@ -1,7 +1,7 @@
 /*
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2015 - 2016 Flibio
+ * Copyright (c) 2015 - 2017 Flibio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,11 +26,12 @@ package me.flibio.jobslite.listeners;
 
 import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
+import me.flibio.jobslite.api.Job;
+import me.flibio.jobslite.api.JobManager;
+import me.flibio.jobslite.api.PlayerManager;
 import me.flibio.jobslite.data.LiteKeys;
 import me.flibio.jobslite.data.SignJobData;
 import me.flibio.jobslite.data.SignJobDataManipulatorBuilder;
-import me.flibio.jobslite.utils.JobManager;
-import me.flibio.jobslite.utils.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -92,24 +93,26 @@ public class SignListeners {
     public void onSignClick(InteractBlockEvent.Secondary event, @First Player player) {
         Optional<String> dOpt = event.getTargetBlock().get(LiteKeys.JOB_NAME);
         if (dOpt.isPresent()) {
-            String job = dOpt.get();
-            if (jobManager.jobExists(job)) {
-                String displayName = jobManager.getDisplayName(job);
+            String jobString = dOpt.get();
+            Optional<Job> jOpt = jobManager.getJob(jobString);
+            if (jOpt.isPresent()) {
+                Job job = jOpt.get();
+                String displayName = job.getDisplayName();
                 if (!displayName.isEmpty()) {
-                    if (playerManager.getCurrentJob(player).equalsIgnoreCase(job)) {
-                        player.sendMessage(messageStorage.getMessage("command.join.already", "job", job));
+                    if (playerManager.getCurrentJobs(player.getUniqueId()).contains(job.getId())) {
+                        player.sendMessage(messageStorage.getMessage("command.join.already", "job", displayName));
                         return;
                     }
-                    player.sendMessage(messageStorage.getMessage("command.join.confirm", "job", job));
+                    player.sendMessage(messageStorage.getMessage("command.join.confirm", "job", displayName));
                     player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
                         @Override
                         public void accept(CommandSource source) {
-                            if (!playerManager.setJob(player, job)) {
+                            if (!playerManager.addJob(player.getUniqueId(), job.getId())) {
                                 player.sendMessage(messageStorage.getMessage("generic.error"));
                                 return;
                             }
-                            player.sendMessage(messageStorage.getMessage("command.join.success", "job", job));
+                            player.sendMessage(messageStorage.getMessage("command.join.success", "job", displayName));
                         }
 
                     }));

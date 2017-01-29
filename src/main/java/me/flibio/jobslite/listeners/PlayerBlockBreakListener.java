@@ -1,7 +1,7 @@
 /*
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2015 - 2016 Flibio
+ * Copyright (c) 2015 - 2017 Flibio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,10 +27,12 @@ package me.flibio.jobslite.listeners;
 import com.google.common.collect.ImmutableMap;
 import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
-import me.flibio.jobslite.utils.JobManager;
-import me.flibio.jobslite.utils.JobManager.ActionType;
+import me.flibio.jobslite.api.Job;
+import me.flibio.jobslite.api.JobManager;
+import me.flibio.jobslite.api.PlayerManager;
+import me.flibio.jobslite.api.Reward;
 import me.flibio.jobslite.utils.NumberUtils;
-import me.flibio.jobslite.utils.PlayerManager;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.Transaction;
@@ -46,12 +48,15 @@ import org.spongepowered.api.event.cause.NamedCause;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.item.Enchantments;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.text.Text;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -62,150 +67,146 @@ public class PlayerBlockBreakListener {
 
     @Listener
     public void onBlockBreak(ChangeBlockEvent.Break event, @First Player player) {
+        Sponge.getScheduler().createTaskBuilder().execute(c -> {
+            run(event, player);
+        }).async().submit(JobsLite.getInstance());
+    }
+
+    private void run(ChangeBlockEvent.Break event, Player player) {
+        UUID uuid = player.getUniqueId();
         // Load managers
         PlayerManager playerManager = JobsLite.getPlayerManager();
         JobManager jobManager = JobsLite.getJobManager();
-        if (playerManager.playerExists(player)) {
-            String job = playerManager.getCurrentJob(player).trim();
-            if (!job.isEmpty()) {
-                if (jobManager.jobExists(job)) {
-                    String displayName = jobManager.getDisplayName(job);
-                    if (displayName.isEmpty())
-                        return;
-                    Optional<UniqueAccount> uOpt = JobsLite.getEconomyService().getOrCreateAccount(player.getUniqueId());
-                    if (!uOpt.isPresent()) {
-                        return;
-                    }
-                    if (jobManager.onlySilkTouch(job)) {
-                        Optional<ItemStack> iOpt = player.getItemInHand(HandTypes.MAIN_HAND);
-                        if (iOpt.isPresent()) {
-                            ItemStack item = iOpt.get();
-                            EnchantmentData data = item.getOrCreate(EnchantmentData.class).get();
-                            for (ItemEnchantment enchantment : data.enchantments()) {
-                                if (enchantment.getEnchantment().equals(Enchantments.SILK_TOUCH)) {
-                                    return;
-                                }
+        for (String jobString : playerManager.getCurrentJobs(uuid)) {
+            Optional<Job> jOpt = jobManager.getJob(jobString);
+            if (jOpt.isPresent()) {
+                Job job = jOpt.get();
+                String displayName = job.getDisplayName();
+                String id = job.getId();
+                Optional<UniqueAccount> uOpt = JobsLite.getEconomyService().getOrCreateAccount(uuid);
+                if (!uOpt.isPresent()) {
+                    return;
+                }
+                if (job.isSilkTouch()) {
+                    Optional<ItemStack> iOpt = player.getItemInHand(HandTypes.MAIN_HAND);
+                    if (iOpt.isPresent()) {
+                        ItemStack item = iOpt.get();
+                        EnchantmentData data = item.getOrCreate(EnchantmentData.class).get();
+                        for (ItemEnchantment enchantment : data.enchantments()) {
+                            if (enchantment.getEnchantment().equals(Enchantments.SILK_TOUCH)) {
+                                return;
                             }
                         }
                     }
-                    account = uOpt.get();
-                    for (String block : jobManager.getBreakBlocks(job)) {
-                        for (Transaction<BlockSnapshot> transaction : event.getTransactions()) {
-                            if (transaction.isValid()) {
-                                BlockState blockTransactionState = transaction.getOriginal().getState();
-                                if (jobManager.onlyWorldGen(job)) {
-                                    Optional<UUID> uuOpt = transaction.getOriginal().getCreator();
-                                    if (uuOpt.isPresent()) {
-                                        continue;
-                                    }
+                }
+                account = uOpt.get();
+                for (Entry<String, Reward> entry : job.getBlockBreaks().entrySet()) {
+                    for (Transaction<BlockSnapshot> transaction : event.getTransactions()) {
+                        if (transaction.isValid()) {
+                            BlockState blockTransactionState = transaction.getOriginal().getState();
+                            if (job.isWorldGen()) {
+                                Optional<UUID> uuOpt = transaction.getOriginal().getCreator();
+                                if (uuOpt.isPresent()) {
+                                    continue;
                                 }
-                                boolean pass = false;
-                                if (jobManager.ignoresData(job)) {
-                                    // Ignore data
-                                    String newBlock = block.replaceAll("\\[.*?]", "");
-                                    if (newBlock.equalsIgnoreCase(blockTransactionState.getId().replaceAll("\\[.*?]", ""))) {
-                                        pass = true;
+                            }
+                            String block = entry.getKey();
+                            boolean pass = false;
+                            if (job.isIgnoreData()) {
+                                // Ignore data
+                                String newBlock = block.replaceAll("\\[.*?]", "");
+                                if (newBlock.equalsIgnoreCase(blockTransactionState.getId().replaceAll("\\[.*?]", ""))) {
+                                    pass = true;
+                                }
+                            } else {
+                                // Use data
+                                if (block.equalsIgnoreCase(blockTransactionState.toString())) {
+                                    pass = true;
+                                }
+                            }
+                            if (pass) {
+                                // Block is a match!
+                                // Get all variables
+                                // Max Level
+                                int maxLevel = job.getMaxLevel();
+                                // Current Level
+                                int playerLevel = playerManager.getCurrentLevel(uuid, id);
+                                if (playerLevel < 0)
+                                    continue;
+                                // Current Exp
+                                Optional<Double> playerExp = playerManager.getCurrentExp(uuid, id);
+                                if (!playerExp.isPresent())
+                                    continue;
+                                // Base exp reward
+                                double baseExpReward = entry.getValue().getExp();
+                                // Base currency reward
+                                double baseCurrencyReward = entry.getValue().getCurrency();
+                                // Get the equations
+                                String rewardEquation = job.getCurEquation();
+                                String rewardCurrencyEquation = rewardEquation;
+                                String expEquation = job.getExpEquation();
+                                // Replace the variables in the equation
+                                rewardEquation =
+                                        rewardEquation.replaceAll("startingPoint", baseExpReward + "").replaceAll("currentLevel",
+                                                playerLevel + "");
+                                rewardCurrencyEquation =
+                                        rewardCurrencyEquation.replaceAll("startingPoint", baseCurrencyReward + "").replaceAll(
+                                                "currentLevel", playerLevel + "");
+                                expEquation = expEquation.replaceAll("currentLevel", playerLevel + "");
+                                // Calculate the data
+                                double reward;
+                                double expRequired = NumberUtils.eval(expEquation);
+                                double currencyReward;
+                                if (playerLevel == 0) {
+                                    reward = baseExpReward;
+                                    currencyReward = baseCurrencyReward;
+                                } else {
+                                    reward = NumberUtils.eval(rewardEquation);
+                                    currencyReward = NumberUtils.eval(rewardCurrencyEquation);
+                                }
+                                // Figure it out
+                                if (playerExp.get() + reward >= expRequired) {
+                                    // Player is leveling up
+                                    if (playerLevel == maxLevel) {
+                                        // Already at max level
+                                        addFunds(currencyReward, player);
+                                        continue;
+                                    } else {
+                                        if (playerLevel + 1 == maxLevel) {
+                                            playerManager.setLevel(uuid, id, playerLevel + 1);
+                                            // Sound
+                                            player.playSound(SoundTypes.ENTITY_PLAYER_LEVELUP, player.getLocation().getPosition(), 1);
+                                            addFunds(currencyReward, player);
+                                            player.sendMessage(messageStorage.getMessage("working.levelup", ImmutableMap.of("player",
+                                                    Text.of(player.getName()), "level", Text.of(playerLevel + 1), "job", Text.of(displayName))));
+                                            // Tell them they are now at the
+                                            // max level
+                                            player.sendMessage(messageStorage.getMessage("working.maxlevel", "job", displayName));
+                                        } else {
+                                            double expLeft = reward - (expRequired - playerExp.get());
+                                            playerManager.setExp(uuid, id, expLeft);
+                                            playerManager.setLevel(uuid, id, playerLevel + 1);
+                                            // Sound
+                                            player.playSound(SoundTypes.ENTITY_PLAYER_LEVELUP, player.getLocation().getPosition(), 1);
+                                            addFunds(currencyReward, player);
+                                            player.sendMessage(messageStorage.getMessage("working.levelup", ImmutableMap.of("player",
+                                                    Text.of(player.getName()), "level", Text.of(playerLevel + 1), "job", Text.of(displayName))));
+                                            // Tell them their new
+                                            // statistics
+                                            String newExpEq = expEquation.replaceAll("currentLevel", (playerLevel + 2) + "");
+                                            double newExp = NumberUtils.eval(newExpEq);
+                                            player.sendMessage(messageStorage.getMessage("working.nextlevel", "exp", NumberFormat
+                                                    .getNumberInstance(Locale.US).format(newExp - expLeft)));
+                                        }
                                     }
                                 } else {
-                                    // Use data
-                                    if (block.equalsIgnoreCase(blockTransactionState.toString())) {
-                                        pass = true;
-                                    }
-                                }
-                                if (pass) {
-                                    // Block is a match!
-                                    // Get all variables
-                                    // Max Level
-                                    int maxLevel = jobManager.getMaxLevel(job);
-                                    if (maxLevel < 0)
+                                    // Player isn't leveling up
+                                    addFunds(currencyReward, player);
+                                    // If the player is at the max level
+                                    // don't give them exp
+                                    if (maxLevel == playerLevel)
                                         continue;
-                                    // Current Level
-                                    int playerLevel = playerManager.getCurrentLevel(player, job);
-                                    if (playerLevel < 0)
-                                        continue;
-                                    // Current Exp
-                                    Optional<Double> playerExp = playerManager.getCurrentExp(player, job);
-                                    if (!playerExp.isPresent())
-                                        continue;
-                                    // Base exp reward
-                                    Optional<Double> baseExpReward = jobManager.getExpReward(job, block, ActionType.BREAK);
-                                    if (!baseExpReward.isPresent())
-                                        continue;
-                                    // Base currency reward
-                                    Optional<Double> baseCurrencyReward = jobManager.getCurrencyReward(job, block, ActionType.BREAK);
-                                    if (!baseExpReward.isPresent())
-                                        continue;
-                                    // Get the equations
-                                    String rewardEquation = jobManager.getRewardEquation(job);
-                                    if (rewardEquation.isEmpty())
-                                        continue;
-                                    String rewardCurrencyEquation = rewardEquation;
-                                    String expEquation = jobManager.getExpRequiredEquation(job);
-                                    if (expEquation.isEmpty())
-                                        continue;
-                                    // Replace the variables in the equation
-                                    rewardEquation =
-                                            rewardEquation.replaceAll("startingPoint", baseExpReward.get() + "").replaceAll("currentLevel",
-                                                    playerLevel + "");
-                                    rewardCurrencyEquation =
-                                            rewardCurrencyEquation.replaceAll("startingPoint", baseCurrencyReward.get() + "").replaceAll(
-                                                    "currentLevel", playerLevel + "");
-                                    expEquation = expEquation.replaceAll("currentLevel", playerLevel + "");
-                                    // Calculate the data
-                                    double reward;
-                                    double expRequired = NumberUtils.eval(expEquation);
-                                    double currencyReward;
-                                    if (playerLevel == 0) {
-                                        reward = baseExpReward.get();
-                                        currencyReward = baseCurrencyReward.get();
-                                    } else {
-                                        reward = NumberUtils.eval(rewardEquation);
-                                        currencyReward = NumberUtils.eval(rewardCurrencyEquation);
-                                    }
-                                    // Figure it out
-                                    if (playerExp.get() + reward >= expRequired) {
-                                        // Player is leveling up
-                                        if (playerLevel == maxLevel) {
-                                            // Already at max level
-                                            addFunds(currencyReward);
-                                            continue;
-                                        } else {
-                                            if (playerLevel + 1 == maxLevel) {
-                                                playerManager.setLevel(player, job, playerLevel + 1);
-                                                // Sound
-                                                player.playSound(SoundTypes.ENTITY_PLAYER_LEVELUP, player.getLocation().getPosition(), 1);
-                                                addFunds(currencyReward);
-                                                player.sendMessage(messageStorage.getMessage("working.levelup", ImmutableMap.of("player",
-                                                        Text.of(player.getName()), "level", Text.of(playerLevel + 1), "job", Text.of(displayName))));
-                                                // Tell them they are now at the
-                                                // max level
-                                                player.sendMessage(messageStorage.getMessage("working.maxlevel", "job", displayName));
-                                            } else {
-                                                double expLeft = reward - (expRequired - playerExp.get());
-                                                playerManager.setExp(player, job, expLeft);
-                                                playerManager.setLevel(player, job, playerLevel + 1);
-                                                // Sound
-                                                player.playSound(SoundTypes.ENTITY_PLAYER_LEVELUP, player.getLocation().getPosition(), 1);
-                                                addFunds(currencyReward);
-                                                player.sendMessage(messageStorage.getMessage("working.levelup", ImmutableMap.of("player",
-                                                        Text.of(player.getName()), "level", Text.of(playerLevel + 1), "job", Text.of(displayName))));
-                                                // Tell them their new
-                                                // statistics
-                                                String newExpEq = expEquation.replaceAll("currentLevel", (playerLevel + 2) + "");
-                                                double newExp = NumberUtils.eval(newExpEq);
-                                                player.sendMessage(messageStorage.getMessage("working.nextlevel", "exp", NumberFormat
-                                                        .getNumberInstance(Locale.US).format(newExp - expLeft)));
-                                            }
-                                        }
-                                    } else {
-                                        // Player isn't leveling up
-                                        addFunds(currencyReward);
-                                        // If the player is at the max level
-                                        // don't give them exp
-                                        if (maxLevel == playerLevel)
-                                            continue;
-                                        playerManager.setExp(player, job, playerExp.get() + reward);
-                                    }
+                                    playerManager.setExp(uuid, id, playerExp.get() + reward);
                                 }
                             }
                         }
@@ -215,9 +216,30 @@ public class PlayerBlockBreakListener {
         }
     }
 
-    private void addFunds(double amount) {
-        account.deposit(JobsLite.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(amount),
-                Cause.of(NamedCause.owner(JobsLite.getInstance())));
+    private void addFunds(double amount, Player player) {
+        String virt = JobsLite.getOption("virtual-draw");
+        if (virt.equalsIgnoreCase("none")) {
+            // Generate money
+            account.deposit(JobsLite.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(amount),
+                    Cause.of(NamedCause.owner(JobsLite.getInstance())));
+        } else {
+            // Transfer money
+            Optional<Account> aOpt = JobsLite.getEconomyService().getOrCreateAccount(virt);
+            if (aOpt.isPresent()) {
+                if (!aOpt.get()
+                        .transfer(account, JobsLite.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(amount),
+                                Cause.of(NamedCause.owner(JobsLite.getInstance()))).getResult().equals(ResultType.SUCCESS)) {
+                    // Transfer failed
+                    if (!JobsLite.msgCache.contains(player.getUniqueId())) {
+                        player.sendMessage(messageStorage.getMessage("working.nofunds"));
+                        JobsLite.msgCache.add(player.getUniqueId());
+                    }
+                }
+            } else {
+                // Failed to find account
+                JobsLite.getInstance().logger.error("Failed to find virtual account! Payment will not be given!");
+            }
+        }
     }
 
 }

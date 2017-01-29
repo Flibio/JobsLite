@@ -1,7 +1,7 @@
 /*
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2015 - 2016 Flibio
+ * Copyright (c) 2015 - 2017 Flibio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -30,14 +30,18 @@ import io.github.flibio.utils.commands.Command;
 import io.github.flibio.utils.commands.ParentCommand;
 import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
-import me.flibio.jobslite.utils.PlayerManager;
+import me.flibio.jobslite.api.Job;
+import me.flibio.jobslite.api.JobManager;
+import me.flibio.jobslite.api.PlayerManager;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.text.Text;
 
 import java.text.DecimalFormat;
 import java.util.Optional;
+import java.util.UUID;
 
 @AsyncCommand
 @ParentCommand(parentCommand = JobsCommand.class)
@@ -45,6 +49,7 @@ import java.util.Optional;
 public class InfoCommand extends BaseCommandExecutor<Player> {
 
     private PlayerManager playerManager = JobsLite.getPlayerManager();
+    private JobManager jobManager = JobsLite.getJobManager();
     private MessageStorage messageStorage = JobsLite.getMessageStorage();
 
     @Override
@@ -56,22 +61,29 @@ public class InfoCommand extends BaseCommandExecutor<Player> {
 
     @Override
     public void run(Player player, CommandContext args) {
-        if (playerManager.playerExists(player)) {
-            if (!playerManager.getCurrentJob(player).isEmpty()) {
-                String job = playerManager.getCurrentJob(player);
-                player.sendMessage(messageStorage.getMessage("command.info.job", "job", job));
-                player.sendMessage(messageStorage.getMessage("command.info.level", "level", playerManager.getCurrentLevel(player, job) + ""));
-                Optional<Double> eOpt = playerManager.getExpRequired(player, job);
+        UUID uuid = player.getUniqueId();
+        boolean first = true;
+        for (String jobString : playerManager.getCurrentJobs(uuid)) {
+            Optional<Job> jOpt = jobManager.getJob(jobString);
+            if (jOpt.isPresent()) {
+                Job job = jOpt.get();
+                int lvl = playerManager.getCurrentLevel(uuid, jobString);
+                if (!first) {
+                    player.sendMessage(Text.of(""));
+                }
+                player.sendMessage(messageStorage.getMessage("command.info.job", "job", job.getDisplayName()));
+                player.sendMessage(messageStorage.getMessage("command.info.level", "level", lvl + ""));
+                Optional<Double> eOpt = playerManager.getCurrentExp(uuid, jobString);
                 if (eOpt.isPresent()) {
-                    String exp = DecimalFormat.getInstance().format(eOpt.get());
+                    String exp = DecimalFormat.getInstance().format(job.getExpRequired(lvl, eOpt.get()));
                     player.sendMessage(messageStorage.getMessage("command.info.exp", "exp", exp));
                 }
-            } else {
-                player.sendMessage(messageStorage.getMessage("command.leave.nojob"));
+                first = false;
             }
-        } else {
-            player.sendMessage(messageStorage.getMessage("generic.error"));
+        }
+
+        if (first) {
+            player.sendMessage(messageStorage.getMessage("command.info.nojob"));
         }
     }
-
 }

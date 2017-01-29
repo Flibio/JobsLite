@@ -1,7 +1,7 @@
 /*
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2015 - 2016 Flibio
+ * Copyright (c) 2015 - 2017 Flibio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -30,8 +30,9 @@ import io.github.flibio.utils.commands.Command;
 import io.github.flibio.utils.commands.ParentCommand;
 import io.github.flibio.utils.message.MessageStorage;
 import me.flibio.jobslite.JobsLite;
-import me.flibio.jobslite.utils.JobManager;
-import me.flibio.jobslite.utils.PlayerManager;
+import me.flibio.jobslite.api.Job;
+import me.flibio.jobslite.api.JobManager;
+import me.flibio.jobslite.api.PlayerManager;
 import me.flibio.jobslite.utils.TextUtils;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -39,6 +40,8 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
 
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 @AsyncCommand
@@ -59,42 +62,39 @@ public class JoinCommand extends BaseCommandExecutor<Player> {
 
     @Override
     public void run(Player player, CommandContext args) {
-        if (playerManager.playerExists(player)) {
-            player.sendMessage(messageStorage.getMessage("command.join.select"));
-            player.sendMessage(messageStorage.getMessage("command.join.warn"));
-            for (String job : jobManager.getJobs()) {
-                if (jobManager.jobExists(job)) {
-                    final String displayName = jobManager.getDisplayName(job);
-                    if (!displayName.isEmpty()) {
-                        player.sendMessage(TextUtils.option(new Consumer<CommandSource>() {
+        UUID uuid = player.getUniqueId();
+        List<String> curJobs = playerManager.getCurrentJobs(uuid);
+        if (curJobs.size() >= Integer.parseInt(JobsLite.getOption("max-jobs"))) {
+            player.sendMessage(messageStorage.getMessage("command.join.toomany"));
+            return;
+        }
+        player.sendMessage(messageStorage.getMessage("command.join.select"));
+        for (Job job : jobManager.getJobs()) {
+            String displayName = job.getDisplayName();
+            player.sendMessage(TextUtils.option(new Consumer<CommandSource>() {
 
-                            @Override
-                            public void accept(CommandSource source) {
-                                if (playerManager.getCurrentJob(player).equalsIgnoreCase(job)) {
-                                    player.sendMessage(messageStorage.getMessage("command.join.already", "job", job));
-                                    return;
-                                }
-                                player.sendMessage(messageStorage.getMessage("command.join.confirm", "job", job));
-                                player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
-
-                                    @Override
-                                    public void accept(CommandSource source) {
-                                        if (!playerManager.setJob(player, job)) {
-                                            player.sendMessage(messageStorage.getMessage("generic.error"));
-                                            return;
-                                        }
-                                        player.sendMessage(messageStorage.getMessage("command.join.success", "job", job));
-                                    }
-
-                                }));
-                            }
-
-                        }, jobManager.getColor(job), displayName));
+                @Override
+                public void accept(CommandSource source) {
+                    if (curJobs.contains(job.getId())) {
+                        player.sendMessage(messageStorage.getMessage("command.join.already", "job", job.getDisplayName()));
+                        return;
                     }
+                    player.sendMessage(messageStorage.getMessage("command.join.confirm", "job", job.getDisplayName()));
+                    player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
+
+                        @Override
+                        public void accept(CommandSource source) {
+                            if (!playerManager.addJob(uuid, job.getId())) {
+                                player.sendMessage(messageStorage.getMessage("generic.error"));
+                                return;
+                            }
+                            player.sendMessage(messageStorage.getMessage("command.join.success", "job", job.getDisplayName()));
+                        }
+
+                    }));
                 }
-            }
-        } else {
-            player.sendMessage(messageStorage.getMessage("generic.error"));
+
+            }, job.getTextColor(), displayName));
         }
     }
 }

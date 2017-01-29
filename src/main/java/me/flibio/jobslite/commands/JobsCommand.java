@@ -1,7 +1,7 @@
 /*
  * This file is part of JobsLite, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2015 - 2016 Flibio
+ * Copyright (c) 2015 - 2017 Flibio
  * Copyright (c) Contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,6 +24,8 @@
  */
 package me.flibio.jobslite.commands;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import io.github.flibio.utils.commands.AsyncCommand;
 import io.github.flibio.utils.commands.BaseCommandExecutor;
 import io.github.flibio.utils.commands.Command;
@@ -33,6 +35,9 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.command.spec.CommandSpec.Builder;
 import org.spongepowered.api.entity.living.player.Player;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 @AsyncCommand
 @Command(aliases = {"jobs"}, permission = "jobs.user.command")
@@ -49,7 +54,25 @@ public class JobsCommand extends BaseCommandExecutor<Player> {
 
     @Override
     public void run(Player src, CommandContext args) {
-        src.sendMessage(messageStorage.getMessage("command.usage", "command", "/jobs", "subcommands", "create | delete | join | leave | info | set"));
+        Map<String, String> perms = Maps.newHashMap(ImmutableMap.of("jobs.user.info", "info", "jobs.user.join", "join", "jobs.user.leave", "leave"));
+        Map<String, String> adminPerms =
+                ImmutableMap.of("jobs.admin.add", "add", "jobs.admin.create", "create", "jobs.admin.delete", "delete", "jobs.admin.remove", "remove");
+        perms.putAll(adminPerms);
+        String commands = "";
+        // Loop through the permissions
+        boolean first = true;
+        for (Entry<String, String> entry : perms.entrySet()) {
+            String perm = entry.getKey();
+            String command = entry.getValue();
+            if (src.hasPermission(perm)) {
+                if (first) {
+                    commands += command;
+                } else {
+                    commands += " | " + command;
+                }
+            }
+            first = false;
+        }
+        src.sendMessage(messageStorage.getMessage("command.usage", "command", "/jobs", "subcommands", commands));
     }
-
 }
