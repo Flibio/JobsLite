@@ -24,6 +24,7 @@
  */
 package me.flibio.jobslite.data;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ComparisonChain;
 import org.spongepowered.api.Sponge;
@@ -105,7 +106,7 @@ public class SignJobData extends AbstractData<SignJobData, ImmutableSignJobData>
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("jobName", this.jobName)
                 .toString();
     }

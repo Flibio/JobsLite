@@ -11,7 +11,7 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 group 'me.flibio'
-version '1.7.0'
+version '1.8.0'
 
 defaultTasks 'licenseFormat', 'clean', 'build'
 
@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:${project.apiVersion}'
+    compile "org.spongepowered:spongeapi:${project.apiVersion}"
     compile 'com.github.flibiostudio:utils:1.9.0'
 }
 
