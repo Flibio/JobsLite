@@ -71,6 +71,7 @@ import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
@@ -97,6 +98,8 @@ public class JobsLite {
 
     @Inject public Game game;
 
+    @Inject public PluginContainer container;
+
     public String version = JobsLite.class.getAnnotation(Plugin.class).version();
 
     private static FileManager fileManager;
@@ -113,8 +116,8 @@ public class JobsLite {
     public void onPreInitialize(GamePreInitializationEvent event) {
         instance = this;
         // Register the custom data
-        Sponge.getDataManager().register(JobData.class, ImmutableJobData.class, new JobDataManipulatorBuilder());
-        Sponge.getDataManager().register(SignJobData.class, ImmutableSignJobData.class, new SignJobDataManipulatorBuilder());
+        Sponge.getDataManager().registerBuilder(JobData.class, new JobDataManipulatorBuilder());
+        Sponge.getDataManager().registerBuilder(SignJobData.class, new SignJobDataManipulatorBuilder());
         // Initialze basic plugin managers needed for further initialization
         if (new File(configDir.toString()).isAbsolute()) {
             fileManager = FileManager.createInstance(this, configDir.toString());

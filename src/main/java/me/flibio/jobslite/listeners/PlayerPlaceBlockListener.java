@@ -41,7 +41,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.NamedCause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -198,14 +198,14 @@ public class PlayerPlaceBlockListener {
         if (virt.equalsIgnoreCase("none")) {
             // Generate money
             account.deposit(JobsLite.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(amount),
-                    Cause.of(NamedCause.owner(JobsLite.getInstance())));
+                    Cause.of(EventContext.empty(), JobsLite.getInstance().container));
         } else {
             // Transfer money
             Optional<Account> aOpt = JobsLite.getEconomyService().getOrCreateAccount(virt);
             if (aOpt.isPresent()) {
                 if (!aOpt.get()
                         .transfer(account, JobsLite.getEconomyService().getDefaultCurrency(), BigDecimal.valueOf(amount),
-                                Cause.of(NamedCause.owner(JobsLite.getInstance()))).getResult().equals(ResultType.SUCCESS)) {
+                                Cause.of(EventContext.empty(),JobsLite.getInstance().container)).getResult().equals(ResultType.SUCCESS)) {
                     // Transfer failed
                     if (!JobsLite.msgCache.contains(player.getUniqueId())) {
                         player.sendMessage(messageStorage.getMessage("working.nofunds"));
