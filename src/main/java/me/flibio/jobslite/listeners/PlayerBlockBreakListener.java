@@ -37,7 +37,6 @@ import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.manipulator.mutable.item.EnchantmentData;
-import org.spongepowered.api.data.meta.ItemEnchantment;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.effect.sound.SoundTypes;
 import org.spongepowered.api.entity.living.player.Player;
@@ -46,7 +45,8 @@ import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.filter.cause.First;
-import org.spongepowered.api.item.Enchantments;
+import org.spongepowered.api.item.enchantment.Enchantment;
+import org.spongepowered.api.item.enchantment.EnchantmentTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -92,8 +92,8 @@ public class PlayerBlockBreakListener {
                     if (iOpt.isPresent()) {
                         ItemStack item = iOpt.get();
                         EnchantmentData data = item.getOrCreate(EnchantmentData.class).get();
-                        for (ItemEnchantment enchantment : data.enchantments()) {
-                            if (enchantment.getEnchantment().equals(Enchantments.SILK_TOUCH)) {
+                        for (Enchantment enchantment : data.enchantments()) {
+                            if (enchantment.getType().equals(EnchantmentTypes.SILK_TOUCH)) {
                                 return;
                             }
                         }
