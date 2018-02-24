@@ -44,10 +44,7 @@ All issues should be reported to the GitHub issue tracker [here](https://ore.spo
 
 [**Downloads**][2]
 
-[**Development Builds**][3]
-
 [**Support Me**][1]
 
 [1]: http://flibio.weebly.com/support-me.html
 [2]: https://ore.spongepowered.org/Flibio/JobsLite/versions
-[3]: continuum.flibio.net/project/JobsLite
