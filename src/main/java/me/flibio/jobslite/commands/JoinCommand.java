@@ -75,10 +75,17 @@ public class JoinCommand extends BaseCommandExecutor<Player> {
 
                 @Override
                 public void accept(CommandSource source) {
+                    List<String> curJobs = playerManager.getCurrentJobs(uuid);
                     if (curJobs.contains(job.getId())) {
                         player.sendMessage(messageStorage.getMessage("command.join.already", "job", job.getDisplayName()));
                         return;
                     }
+                    
+                    if (curJobs.size() >= Integer.parseInt(JobsLite.getOption("max-jobs"))) {
+                        player.sendMessage(messageStorage.getMessage("command.join.toomany"));
+                        return;
+                    }
+                    
                     player.sendMessage(messageStorage.getMessage("command.join.confirm", "job", job.getDisplayName()));
                     player.sendMessage(TextUtils.yesOption(new Consumer<CommandSource>() {
 
